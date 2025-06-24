@@ -32,6 +32,19 @@ namespace OnlineTraj {
 
     };
 
+    struct OTGConstraints {
+        double max_velocity = 0;
+        double max_acceleration = 0;
+        double max_jerk = 0;
+        double min_velocity = 0;
+        double min_acceleration = 0;
+        double min_jerk = 0;
+    };
+    struct OTGTarget {
+        std::vector<double> initial_position;
+        std::vector<double> target_position;
+    };
+
 
 
 

@@ -29,11 +29,11 @@ void OnlineTraj::MultiDofOtg::setTarget( const MultiDofOTGParams& params ) {
             otg_ [i].setTarget( final_otg_params_ [i] );
         }
     }
-    else {
-        for ( int i = 0; i < dof_; i++ ) {
-            otg_ [i].setTarget( params [i] );
-        }
-    }
+    // else {
+    //     for ( int i = 0; i < dof_; i++ ) {
+    //         otg_ [i].setTarget( params [i] );
+    //     }
+    // }
     // params_ = params;
 
 }
