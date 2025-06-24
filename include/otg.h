@@ -11,9 +11,9 @@ namespace OnlineTraj {
         OTG( ) { }
         ~OTG( ) { }
 
-        void setTarget( OnlineTraj::OTGParams& params ) {
+        void setTarget( const OnlineTraj::OTGParams& params ) {
             params_ = params;
-            output_.position = params_.initial_position;
+
             prev_pos_ = params_.initial_position;
         }
 

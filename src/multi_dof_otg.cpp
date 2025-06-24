@@ -25,12 +25,17 @@ void OnlineTraj::MultiDofOtg::setTarget( const MultiDofOTGParams& params ) {
         params_ = params;
         std::cout << "target parameters have changed, recomputing trajectory...\n";
         recompute_( );
+        for ( int i = 0; i < dof_; i++ ) {
+            otg_ [i].setTarget( final_otg_params_ [i] );
+        }
     }
-
+    else {
+        for ( int i = 0; i < dof_; i++ ) {
+            otg_ [i].setTarget( params [i] );
+        }
+    }
     // params_ = params;
-    for ( int i = 0; i < dof_; i++ ) {
-        otg_ [i].setTarget( final_otg_params_ [i] );
-    }
+
 }
 
 void OnlineTraj::MultiDofOtg::getOutput( MultiDofOTGOutput& output ) {
@@ -106,100 +111,100 @@ void  OnlineTraj::MultiDofOtg::computeTJStar_( ) {
 
 }
 void OnlineTraj::MultiDofOtg::computeJerkDurations_( ) {
-   //? assuming case 1:
-   Vlim_ = Vmax_;
+    //? assuming case 1:
+    Vlim_ = Vmax_;
 
-   if ( ( Vmax_ - V0_ [maxDistIndex_] ) * Jmax_ < pow( Amax_, 2 ) ) {
+    if ( ( Vmax_ - V0_ [maxDistIndex_] ) * Jmax_ < pow( Amax_, 2 ) ) {
         // std::cout << "Amax will not be reached..! \n";
         Tj1_ = sqrt( ( Vmax_ - V0_ [maxDistIndex_] ) / Jmax_ );
         Ta_ = 2 * Tj1_;
         // std::cout << "Tj1: " << Tj1_ << " || " << "Ta: " << Ta_ << "\n";
-   }
-   else {
+    }
+    else {
         Tj1_ = Amax_ / Jmax_;
         Ta_ = Tj1_ + ( ( Vmax_ - V0_ [maxDistIndex_] ) / Amax_ );
         // std::cout << "Tj1: " << Tj1_ << " || " << "Ta: " << Ta_ << "\n";
-   }
+    }
 
-   if ( ( Vmax_ - V1_ [maxDistIndex_] ) * Jmax_ < pow( Amax_, 2 ) ) {
+    if ( ( Vmax_ - V1_ [maxDistIndex_] ) * Jmax_ < pow( Amax_, 2 ) ) {
         // std::cout << "Amin will not be reached..!\n";
         Tj2_ = sqrt( ( Vmax_ - V1_ [maxDistIndex_] ) / Jmax_ );
         Td_ = 2 * Tj2_;
         // std::cout << "Tj2: " << Tj2_ << " || " << "Td: " << Td_ << "\n";
 
-   }
-   else {
+    }
+    else {
         Tj2_ = Amax_ / Jmax_;
         Td_ = Tj2_ + ( ( Vmax_ - V1_ [maxDistIndex_] ) / Amax_ );
         // std::cout << "Tj2: " << Tj2_ << " || " << "Td: " << Td_ << "\n";
-   }
+    }
 }
 
 void OnlineTraj::MultiDofOtg::computeConstantVelocityDurations_( ) {
 
-   
+
     Tv_ = ( displacement_ / Vmax_ ) - ( ( Ta_ / 2 ) * ( 1 + V0_ [maxDistIndex_] / Vmax_ ) ) - ( ( Td_ / 2 ) * ( 1 + V1_ [maxDistIndex_] / Vmax_ ) );
     // std::cout << "time for const velocity segment: " << Tv_<<"\n";
     if ( Tv_ > 0 )   // means our assumption of vlim=Vmax was right and can continue with the above values
     {
-         // std::cout << "max vel will be reached.. \n";
+        // std::cout << "max vel will be reached.. \n";
     }
 
     else {   // means our assumption of Vlim=Vmax was wrong and we have to recalculate using case 2.
-         Tv_ = 0;
-         // std::cout << "\ncase2:\n";
-         double delta =
-              ( pow( Amax_, 4 ) / pow( Jmax_, 2 ) ) + ( 2 * ( pow( V0_ [maxDistIndex_], 2 ) + pow( V1_ [maxDistIndex_], 2 ) ) ) +
-              Amax_ * ( 4 * ( displacement_ ) -( ( 2 * ( Amax_ / Jmax_ ) ) * ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ) ) );
+        Tv_ = 0;
+        // std::cout << "\ncase2:\n";
+        double delta =
+            ( pow( Amax_, 4 ) / pow( Jmax_, 2 ) ) + ( 2 * ( pow( V0_ [maxDistIndex_], 2 ) + pow( V1_ [maxDistIndex_], 2 ) ) ) +
+            Amax_ * ( 4 * ( displacement_ ) -( ( 2 * ( Amax_ / Jmax_ ) ) * ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ) ) );
 
-         Tj1_ = Tj2_ = Amax_ / Jmax_;
-         Ta_ = ( ( pow( Amax_, 2 ) / Jmax_ ) - ( 2 * V0_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * Amax_ );
-         Td_ = ( ( pow( Amax_, 2 ) / Jmax_ ) - ( 2 * V1_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * Amax_ );
+        Tj1_ = Tj2_ = Amax_ / Jmax_;
+        Ta_ = ( ( pow( Amax_, 2 ) / Jmax_ ) - ( 2 * V0_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * Amax_ );
+        Td_ = ( ( pow( Amax_, 2 ) / Jmax_ ) - ( 2 * V1_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * Amax_ );
 
-         if ( Ta_ < 2 * Tj1_ || Td_ < 2 * Tj1_ ) {
-              for ( Y_ = 1; Y_ > 0; Y_ -= 0.01 ) {
-                   // std::cout << Y_ << "\n";
-                   Amax_ = Y_ * Amax_;
-                   delta =
-                        ( pow( Amax_, 4 ) / pow( Jmax_, 2 ) ) +
-                        ( 2 * ( pow( V0_ [maxDistIndex_], 2 ) + pow( V1_ [maxDistIndex_], 2 ) ) ) +
-                        Amax_ * ( 4 * ( displacement_ ) -( 2 * ( Amax_ / Jmax_ ) * ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ) ) );
+        if ( Ta_ < 2 * Tj1_ || Td_ < 2 * Tj1_ ) {
+            for ( Y_ = 1; Y_ > 0; Y_ -= 0.01 ) {
+                // std::cout << Y_ << "\n";
+                Amax_ = Y_ * Amax_;
+                delta =
+                    ( pow( Amax_, 4 ) / pow( Jmax_, 2 ) ) +
+                    ( 2 * ( pow( V0_ [maxDistIndex_], 2 ) + pow( V1_ [maxDistIndex_], 2 ) ) ) +
+                    Amax_ * ( 4 * ( displacement_ ) -( 2 * ( Amax_ / Jmax_ ) * ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ) ) );
 
-                   Tj1_ = Tj2_ = Amax_ / Jmax_;
-                   Ta_ = ( ( pow( Amax_, 2 ) / Jmax_ ) - ( 2 * V0_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * Amax_ );
-                   Td_ = ( ( pow( Amax_, 2 ) / Jmax_ ) - ( 2 * V1_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * Amax_ );
-                   if ( Ta_ > 2 * Tj1_ && Td_ > 2 * Tj1_ ) {
-                        // std::cout << "auto adjustments done..\n";
-                        break;
-                   }
-                   else if ( Ta_ < 0 ) {
-                        Ta_ = 0;
-                        Tj1_ = 0;
-                        Td_ = ( 2 * displacement_ ) / ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] );
-                        Tj2_ = ( ( Jmax_ * displacement_ ) -
-                             ( sqrt( Jmax_ * ( Jmax_ * ( pow( displacement_, 2 ) ) +
-                                  ( pow( ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ), 2 ) * ( V1_ [maxDistIndex_] - V0_ [maxDistIndex_] ) ) ) ) ) ) /
-                             ( Jmax_ * ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ) );
-                        break;
-                   }
-                   else if ( Td_ < 0 ) {
-                        Td_ = 0;
-                        Tj2_ = 0;
-                        Ta_ = ( 2 * displacement_ ) / ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] );
-                        Tj1_ = ( ( Jmax_ * displacement_ ) -
-                             ( sqrt( Jmax_ * ( Jmax_ * ( pow( displacement_, 2 ) ) +
-                                  ( pow( ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ), 2 ) * ( V1_ [maxDistIndex_] - V0_ [maxDistIndex_] ) ) ) ) ) ) /
-                             ( Jmax_ * ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ) );
-                        break;
-                   }
-              }
-         }
+                Tj1_ = Tj2_ = Amax_ / Jmax_;
+                Ta_ = ( ( pow( Amax_, 2 ) / Jmax_ ) - ( 2 * V0_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * Amax_ );
+                Td_ = ( ( pow( Amax_, 2 ) / Jmax_ ) - ( 2 * V1_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * Amax_ );
+                if ( Ta_ > 2 * Tj1_ && Td_ > 2 * Tj1_ ) {
+                    // std::cout << "auto adjustments done..\n";
+                    break;
+                }
+                else if ( Ta_ < 0 ) {
+                    Ta_ = 0;
+                    Tj1_ = 0;
+                    Td_ = ( 2 * displacement_ ) / ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] );
+                    Tj2_ = ( ( Jmax_ * displacement_ ) -
+                        ( sqrt( Jmax_ * ( Jmax_ * ( pow( displacement_, 2 ) ) +
+                            ( pow( ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ), 2 ) * ( V1_ [maxDistIndex_] - V0_ [maxDistIndex_] ) ) ) ) ) ) /
+                        ( Jmax_ * ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ) );
+                    break;
+                }
+                else if ( Td_ < 0 ) {
+                    Td_ = 0;
+                    Tj2_ = 0;
+                    Ta_ = ( 2 * displacement_ ) / ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] );
+                    Tj1_ = ( ( Jmax_ * displacement_ ) -
+                        ( sqrt( Jmax_ * ( Jmax_ * ( pow( displacement_, 2 ) ) +
+                            ( pow( ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ), 2 ) * ( V1_ [maxDistIndex_] - V0_ [maxDistIndex_] ) ) ) ) ) ) /
+                        ( Jmax_ * ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ) );
+                    break;
+                }
+            }
+        }
     }
 
     Alim_a_ = Jmax_ * Tj1_;
     Alim_d_ = -Jmax_ * Tj2_;
     Vlim_ = V1_ [maxDistIndex_] - ( Td_ - Tj2_ ) * Alim_d_;
-    
+
     // std::cout << "Ta: " << Ta_ << " || "
     //      << "Td: " << Td_ << " || "
     //      << "Tv: " << Tv_ << " || "
