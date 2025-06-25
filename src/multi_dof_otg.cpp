@@ -18,25 +18,67 @@ void OnlineTraj::MultiDofOtg::setDof( const int dof ) {
     final_otg_params_.resize( dof_ );
     V0_.resize( dof_ );
     V1_.resize( dof_ );
+    target_position_.resize( dof_ );
+    system_states_.initial_position.resize( dof_ );
+    system_states_.initial_velocity.resize( dof_ );
+    system_states_.initial_acceleration.resize( dof_ );
 }
 
-void OnlineTraj::MultiDofOtg::setTarget( const MultiDofOTGParams& params ) {
-    if ( !checkTargetupdate_( params ) ) {
-        params_ = params;
-        std::cout << "target parameters have changed, recomputing trajectory...\n";
-        recompute_( );
-        for ( int i = 0; i < dof_; i++ ) {
-            otg_ [i].setTarget( final_otg_params_ [i] );
-        }
+// void OnlineTraj::MultiDofOtg::setTarget( const MultiDofOTGParams& params ) {
+//     if ( !checkTargetupdate_( params ) ) {
+//         params_ = params;
+
+//         std::cout << "target parameters have changed, recomputing trajectory...\n";
+//         recompute_( );
+//         for ( int i = 0; i < dof_; i++ ) {
+//             otg_ [i].setTarget( final_otg_params_ [i] );
+//         }
+
+//     }
+
+
+// }
+
+
+void OnlineTraj::MultiDofOtg::update( const OnlineTraj::OTGConstraints& constraints,
+    const OnlineTraj::OTGTargetPosition& target, OnlineTraj::SystemStates& states ) {
+
+    // updateConstraits_( constraints );
+    // updateTargetPosition_( target );
+    setSystemStates_( states );
+
+    checkForConstraintsUpdate_( constraints );
+    checkForTargetUpdate_( target );
+
+    if ( is_constraints_updated_ ) {
+        constraints_ = constraints;
+        std::cout << "here\n\n";
+        should_recompute_ = true;
+        is_constraints_updated_ = false;
     }
-    // else {
-    //     for ( int i = 0; i < dof_; i++ ) {
-    //         otg_ [i].setTarget( params [i] );
-    //     }
-    // }
-    // params_ = params;
+
+    if ( is_target_updated_ ) {
+        target_position_ = target;
+        std::cout << "herer2\n\n";
+        should_recompute_ = true;
+        is_target_updated_ = false;
+    }
+
+    fillParams_( );
+    if ( should_recompute_ ) {
+        recompute_( );
+        should_recompute_ = false;
+    }
+
+    // set the target for all OTGs
+    for ( int i = 0; i < dof_; i++ ) {
+        otg_ [i].setTarget( final_otg_params_ [i] );
+    }
 
 }
+
+
+
 
 void OnlineTraj::MultiDofOtg::getOutput( MultiDofOTGOutput& output ) {
     for ( int i = 0; i < dof_; i++ ) {
@@ -67,7 +109,7 @@ double OnlineTraj::MultiDofOtg::computeTrajectoryDuration_( ) {
     computeTJStar_( );
     computeJerkDurations_( );
     computeConstantVelocityDurations_( );
-    final_time_ = Ta_ + Tv_ + Td_;
+    // final_time_ = Ta_ + Tv_ + Td_;
     std::cout << "final time: " << final_time_ << "\n";
 
     return final_time_;
@@ -281,10 +323,49 @@ void OnlineTraj::MultiDofOtg::recompute_( ) {
     computeTrajectoryDuration_( );
     computeConstraintsFromTrajDuration_( );
 
-    // for ( int i = 0; i < dof_; i++ ) {
-    //     otg_ [i].setTarget( final_otg_params_ [i] );
-    //     otg_ [i].computeTrajectory( );
-    //     output_ [i] = otg_ [i].getOutput( );
-    // }
+
+}
+
+void OnlineTraj::MultiDofOtg::checkForConstraintsUpdate_( const OnlineTraj::OTGConstraints& constraints ) {
+    if ( constraints_.sampling_rate != constraints.sampling_rate ||
+        constraints_.max_velocity != constraints.max_velocity ||
+        constraints_.max_acceleration != constraints.max_acceleration ||
+        constraints_.max_jerk != constraints.max_jerk ||
+        constraints_.min_velocity != constraints.min_velocity ||
+        constraints_.min_acceleration != constraints.min_acceleration ||
+        constraints_.min_jerk != constraints.min_jerk ) {
+
+        constraints_ = constraints;
+        is_constraints_updated_ = true;
+    }
+
+}
+
+void OnlineTraj::MultiDofOtg::checkForTargetUpdate_( const OnlineTraj::OTGTargetPosition& target ) {
+    for ( size_t i = 0; i < dof_; i++ )
+    {
+        if ( target_position_ [i] != target [i] ) {
+            std::cout << "target position for dof: " << i << " has changed\n";
+            is_target_updated_ = true;
+            target_position_ [i] = target [i];
+        }
+    }
+
+}
+
+void OnlineTraj::MultiDofOtg::fillParams_( ) {
+    for ( size_t i = 0; i < dof_; i++ )
+    {
+        params_ [i].sampling_rate = constraints_.sampling_rate;
+        params_ [i].max_velocity = constraints_.max_velocity;
+        params_ [i].max_acceleration = constraints_.max_acceleration;
+        params_ [i].max_jerk = constraints_.max_jerk;
+        params_ [i].min_velocity = constraints_.min_velocity;
+        params_ [i].min_acceleration = constraints_.min_acceleration;
+        params_ [i].min_jerk = constraints_.min_jerk;
+        params_ [i].initial_position = system_states_.initial_position [i];
+        params_ [i].target_position = target_position_ [i];
+
+    }
 
 }

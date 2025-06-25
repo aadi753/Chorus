@@ -1,6 +1,7 @@
 #ifndef MULTI_DOF_OTG_H_
 #define MULTI_DOF_OTG_H_
 
+
 #include "otg.h"
 
 #include <bits/stdc++.h>
@@ -14,8 +15,9 @@ namespace OnlineTraj {
         ~MultiDofOtg( );
 
         void setDof( const int dof );
-        void setTarget( const MultiDofOTGParams& params );
         void getOutput( MultiDofOTGOutput& output );
+
+        void update( const OnlineTraj::OTGConstraints& constraints, const OnlineTraj::OTGTargetPosition& target, OnlineTraj::SystemStates& states );
 
 
     private:
@@ -24,8 +26,14 @@ namespace OnlineTraj {
         void findMaxDisplacement_( );
         void computeConstraintsFromTrajDuration_( );
         void recompute_( );
+        void checkForConstraintsUpdate_( const OnlineTraj::OTGConstraints& constraints );
+        void checkForTargetUpdate_( const OnlineTraj::OTGTargetPosition& target_position );
+        void fillParams_( );
 
 
+        void setSystemStates_( const OnlineTraj::SystemStates& states ) {
+            system_states_ = states;
+        }
         /**
          * @brief computes the internal variable TJStar_
          *
@@ -43,18 +51,22 @@ namespace OnlineTraj {
         void computeJerkDurations_( );
         void computeConstantVelocityDurations_( );
 
-
         MultiDofOTGParams params_;
         MultiDofOTGParams final_otg_params_;
 
         std::vector<double>diff_vec_;
-
+        OnlineTraj::OTGConstraints constraints_;
+        OnlineTraj::OTGTargetPosition target_position_;
+        OnlineTraj::SystemStates system_states_;
         int max_displacement_idx_;
         double max_displacement_;
         int dof_;
         MultiDofOTGOutput output_;
         std::vector<OnlineTraj::OTG> otg_;
 
+        bool is_target_updated_ = false;
+        bool is_constraints_updated_ = false;
+        bool should_recompute_ = false;
         // s curve parameters
         double Ta_;          // time for acceleration phase
         double Tv_;          // time for constant velociy phase
@@ -79,6 +91,8 @@ namespace OnlineTraj {
         std::vector<double>V1_;  // final velocity of the joint at the end of trajectory
     };
 };
+
+
 
 
 #endif /* MULTI_DOF_OTG_H_ */

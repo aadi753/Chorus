@@ -18,6 +18,7 @@ namespace OnlineTraj {
         double min_acceleration = 0;
         double min_jerk = 0;
         double initial_position = 0;
+        double initial_velocity = 0;
         double target_position = 0;
         double target_velocity = 0;
         double target_acceleration = 0;
@@ -31,8 +32,8 @@ namespace OnlineTraj {
         double jerk = 0;
 
     };
-
     struct OTGConstraints {
+        double sampling_rate = 0;
         double max_velocity = 0;
         double max_acceleration = 0;
         double max_jerk = 0;
@@ -40,11 +41,15 @@ namespace OnlineTraj {
         double min_acceleration = 0;
         double min_jerk = 0;
     };
-    struct OTGTarget {
+
+    struct SystemStates {
         std::vector<double> initial_position;
-        std::vector<double> target_position;
+        std::vector<double> initial_velocity;
+        std::vector<double> initial_acceleration;
+
     };
 
+    typedef std::vector<double> OTGTargetPosition;
 
 
 
