@@ -13,8 +13,10 @@ namespace OnlineTraj {
 
         void setTarget( const OnlineTraj::OTGParams& params ) {
             params_ = params;
-
-            prev_pos_ = params_.initial_position;
+            if ( flag ) {
+                prev_pos_ = params_.initial_position;
+                flag = false;
+            }
         }
 
         void getTrajectory( OnlineTraj::OTGOutput& output ) {
@@ -60,6 +62,7 @@ namespace OnlineTraj {
         double prev_vel_ = 0;
         double prev_pos_ = 0;
 
+        bool flag = true; // to check if the initial position is set
         double U_ = 0; // max value of control variable uk
         double uk_ = 0; // control variable
         double uk_prev_ = 0; // previous control variable
