@@ -22,6 +22,8 @@ void OnlineTraj::MultiDofOtg::setDof( const int dof ) {
     system_states_.initial_position.resize( dof_ );
     system_states_.initial_velocity.resize( dof_ );
     system_states_.initial_acceleration.resize( dof_ );
+    position_error_.resize( dof_ );
+    integeral_error_.resize( dof_ );
 }
 
 // void OnlineTraj::MultiDofOtg::setTarget( const MultiDofOTGParams& params ) {
@@ -52,14 +54,12 @@ void OnlineTraj::MultiDofOtg::update( const OnlineTraj::OTGConstraints& constrai
 
     if ( is_constraints_updated_ ) {
         constraints_ = constraints;
-        std::cout << "here\n\n";
         should_recompute_ = true;
         is_constraints_updated_ = false;
     }
 
     if ( is_target_updated_ ) {
         target_position_ = target;
-        std::cout << "herer2\n\n";
         should_recompute_ = true;
         is_target_updated_ = false;
     }
@@ -68,6 +68,7 @@ void OnlineTraj::MultiDofOtg::update( const OnlineTraj::OTGConstraints& constrai
     if ( should_recompute_ ) {
         recompute_( );
         should_recompute_ = false;
+        resetIntegeral_( );
     }
 
     // set the target for all OTGs
@@ -78,13 +79,53 @@ void OnlineTraj::MultiDofOtg::update( const OnlineTraj::OTGConstraints& constrai
 }
 
 
+void OnlineTraj::MultiDofOtg::resetIntegeral_( ) {
+    for ( int i = 0; i < dof_; i++ ) {
+        integeral_error_ [i] = 0;
+    }
+}
 
+void OnlineTraj::MultiDofOtg::setGains( OnlineTraj::MultiDofOTGControllerGains& gains ) {
+    gains_ = gains;
+}
+
+void OnlineTraj::MultiDofOtg::computeError_( ) {
+
+    for ( int i = 0; i < dof_; i++ ) {
+        position_error_ [i] = output_ [i].position - system_states_.initial_position [i];
+        integeral_error_ [i] += position_error_ [i];
+    }
+    clampIntegeralError_( );
+}
+
+
+void OnlineTraj::MultiDofOtg::clampIntegeralError_( ) {
+    for ( int i = 0; i < dof_; i++ ) {
+        if ( integeral_error_ [i] > gains_ [i].upper_limit ) {
+            integeral_error_ [i] = gains_ [i].upper_limit;
+        }
+        else if ( integeral_error_ [i] < gains_ [i].lower_limit ) {
+            integeral_error_ [i] = gains_ [i].lower_limit;
+        }
+    }
+}
 
 void OnlineTraj::MultiDofOtg::getOutput( MultiDofOTGOutput& output ) {
+    output.resize( dof_ );
     for ( int i = 0; i < dof_; i++ ) {
         otg_ [i].getTrajectory( output_ [i] );
     }
-    output = output_;
+    computeError_( );
+
+    for ( size_t i = 0; i < dof_; i++ )
+    {
+        output [i].position = output_ [i].position;
+        output [i].velocity = output_ [i].velocity + ( gains_ [i].kp * position_error_ [i] ) + ( gains_ [i].ki * integeral_error_ [i] );
+        output [i].acceleration = output_ [i].acceleration;
+        output [i].jerk = output_ [i].jerk;
+    }
+
+    // output = output_;
 }
 
 bool OnlineTraj::MultiDofOtg::checkTargetupdate_( const MultiDofOTGParams& params ) {

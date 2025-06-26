@@ -1,5 +1,8 @@
 #include "otg.h"
 
+/**
+ * @brief Compute normalized errors for position, velocity, and acceleration.
+ */
 void OnlineTraj::OTG::computeNormalizedError_( ) {
     // Compute normalized error based on the target parameters
     U_ = params_.max_jerk;
@@ -12,6 +15,9 @@ void OnlineTraj::OTG::computeNormalizedError_( ) {
 
 }
 
+/**
+ * @brief Update motion constraints based on the target parameters.
+ */
 void OnlineTraj::OTG::updateMotionConstraints_( ) {
     // Update motion constraints based on the target parameters
     min_velocity_ = ( params_.min_velocity - params_.target_velocity ) / U_;
@@ -21,6 +27,10 @@ void OnlineTraj::OTG::updateMotionConstraints_( ) {
     // std::cout << "min_velocity: " << min_velocity_ << " max_velocity: " << max_velocity_ << " min_acceleration: " << min_acceleration_ << " max_acceleration: " << max_acceleration_ << "\n";
 }
 
+/**
+ * @brief Compute the sigma parameter for the C3 filter.
+ * @return The computed sigma value.
+ */
 double OnlineTraj::OTG::computeSigma_( ) {
     // Compute sigma based on the current error and motion constraints
     // double sigma = error_pos_ + ( error_vel_ * error_acc_ * sign_ ) - ( ( std::pow( error_acc_, 3 ) / 6.0 ) * ( 1 - 3 * std::abs( sign_ ) ) + ( ( sign_ / 4.0 ) * sqrt( 2 * std::pow( ( ( error_acc_ * error_acc_ ) + ( 2 * error_vel_ * sign_ ) ), 3 ) ) ) );
@@ -36,6 +46,10 @@ double OnlineTraj::OTG::computeSigma_( ) {
     return sigma;
 }
 
+/**
+ * @brief Compute the mu_positive parameter for the C3 filter.
+ * @return The computed mu_positive value.
+ */
 double OnlineTraj::OTG::computeMuPositive_( ) {
     // Compute mu_positive based on the current error and motion constraints
     // double mu_positive = error_pos_ - ( ( max_acceleration_ * ( std::pow( error_acc_, 2 ) - ( 2 * error_vel_ ) ) ) / 4.0 ) - ( ( std::pow( ( std::pow( error_acc_, 2 ) - ( 2 * error_vel_ ) ), 2 ) ) / ( 8 * max_velocity_ ) ) - ( ( error_acc_ * ( ( 3 * error_vel_ ) - std::pow( error_acc_, 2 ) ) ) / 3.0 );
@@ -46,12 +60,20 @@ double OnlineTraj::OTG::computeMuPositive_( ) {
 }
 
 
+/**
+ * @brief Compute the mu_negative parameter for the C3 filter.
+ * @return The computed mu_negative value.
+ */
 double OnlineTraj::OTG::computeMuNegative_( ) {
     double mu_negative = error_pos_ - ( ( min_acceleration_ * ( std::pow( error_acc_, 2 ) + ( 2 * error_vel_ ) ) ) / 4.0 ) - ( ( std::pow( ( std::pow( error_acc_, 2 ) + ( 2 * error_vel_ ) ), 2 ) ) / ( 8 * min_acceleration_ ) ) + ( ( error_acc_ * ( ( 3 * error_vel_ ) + std::pow( error_acc_, 2 ) ) ) / 3.0 );
 
     return mu_negative;
 }
 
+/**
+ * @brief Compute the summation parameter for the C3 filter.
+ * @return The computed summation value.
+ */
 double OnlineTraj::OTG::computeSummation_( ) {
     if ( error_acc_ <= max_acceleration_ && error_vel_ <= ( ( std::pow( error_acc_, 2 ) / 2.0 ) - std::pow( max_acceleration_, 2 ) ) ) {
         return mu_positive_;
@@ -66,6 +88,10 @@ double OnlineTraj::OTG::computeSummation_( ) {
 
 }
 
+/**
+ * @brief Compute the control variable uc.
+ * @return True if successful.
+ */
 bool OnlineTraj::OTG::computeUc_( ) {
 
     double expr = summation_ + ( 1.0 - std::abs( sign_summation_ ) ) * ( delta_ + ( 1.0 - std::abs( sign_ ) ) * error_acc_ );
@@ -73,6 +99,10 @@ bool OnlineTraj::OTG::computeUc_( ) {
     return true;
 }
 
+/**
+ * @brief Compute the final control variable uk.
+ * @return True if successful.
+ */
 bool OnlineTraj::OTG::computeUk_( ) {
     double uv_min = computeUv_( min_velocity_ );
     double uv_max = computeUv_( max_velocity_ );
@@ -81,6 +111,11 @@ bool OnlineTraj::OTG::computeUk_( ) {
 
 }
 
+/**
+ * @brief Compute the velocity control variable for a given velocity constraint.
+ * @param vel The velocity constraint.
+ * @return The computed control variable.
+ */
 double  OnlineTraj::OTG::computeUv_( double& vel ) {
     double ua_min = computeUa_( min_acceleration_ );
     double ua_max = computeUa_( max_acceleration_ );
@@ -93,6 +128,11 @@ double  OnlineTraj::OTG::computeUv_( double& vel ) {
 
 }
 
+/**
+ * @brief Compute the control variable for a given velocity (ucv).
+ * @param vel The velocity constraint.
+ * @return The computed ucv value.
+ */
 double OnlineTraj::OTG::computeUcv_( double& vel ) {
     double delta_v = computeDeltaV_( vel );
 
@@ -102,12 +142,22 @@ double OnlineTraj::OTG::computeUcv_( double& vel ) {
     return ucv_;
 }
 
+/**
+ * @brief Compute the delta value for a given velocity.
+ * @param vel The velocity constraint.
+ * @return The computed delta_v value.
+ */
 double OnlineTraj::OTG::computeDeltaV_( double& vel ) {
     delta_v_ = ( error_acc_ * std::abs( error_acc_ ) ) + ( 2 * ( error_vel_ - vel ) );
     // std::cout << "delta_v: " << delta_v_ << "\n";
     return delta_v_;
 }
 
+/**
+ * @brief Compute the control variable for a given acceleration constraint.
+ * @param acc The acceleration constraint.
+ * @return The computed ua value.
+ */
 double OnlineTraj::OTG::computeUa_( double& acc ) {
     // std::cout << ( error_acc_ - acc ) << "\n";
     ua_ = ( -U_ * getSign( error_acc_ - acc ) );
@@ -116,8 +166,12 @@ double OnlineTraj::OTG::computeUa_( double& acc ) {
 
 }
 
-
+/**
+ * @brief Apply the C3 nonlinear filter to the control variable.
+ * @return True if successful, false otherwise.
+ */
 bool OnlineTraj::OTG::nonLinearFilterC3_( ) {
+
     // Apply C3 nonlinear filter to the control variable
     computeNormalizedError_( );
     updateMotionConstraints_( );
@@ -152,7 +206,9 @@ bool OnlineTraj::OTG::nonLinearFilterC3_( ) {
     return true;
 }
 
-
+/**
+ * @brief Integrate the control variable to update position, velocity, and acceleration.
+ */
 void OnlineTraj::OTG::integrateControlVariable_( ) {
 
     output_.acceleration = ( prev_acc_ + params_.sampling_rate * uk_prev_ );
@@ -166,8 +222,11 @@ void OnlineTraj::OTG::integrateControlVariable_( ) {
 
 }
 
-
-
+/**
+ * @brief Get the sign of delta.
+ * @param delta The delta value.
+ * @return 1 if positive, -1 if negative, 0 if zero.
+ */
 int OnlineTraj::OTG::getSignOfDelta_( const double& delta ) {
     if ( delta > 0 ) {
         return 1;
@@ -178,6 +237,11 @@ int OnlineTraj::OTG::getSignOfDelta_( const double& delta ) {
     return 0;
 }
 
+/**
+ * @brief Get the sign of the summation.
+ * @param summation The summation value.
+ * @return 1 if positive, -1 if negative, 0 if zero.
+ */
 int OnlineTraj::OTG::getSignOfSummation_( const double& summation ) {
     if ( summation > 0 ) {
         return 1;
@@ -188,6 +252,11 @@ int OnlineTraj::OTG::getSignOfSummation_( const double& summation ) {
     return 0;
 }
 
+/**
+ * @brief Get the sign of a value.
+ * @param value The value to check.
+ * @return 1 if positive, -1 if negative, 0 if zero.
+ */
 int OnlineTraj::OTG::getSign( double value ) {
     if ( value > 0 ) {
         return 1;
@@ -198,6 +267,10 @@ int OnlineTraj::OTG::getSign( double value ) {
     return 0;
 }
 
+/**
+ * @brief Pass the output state to the input for the next iteration.
+ * @param output The OTGOutput struct to use as the new input state.
+ */
 void OnlineTraj::OTG::passToInput( OnlineTraj::OTGOutput& output ) {
     // Pass the output to the input
     // params_.initial_position = output.position;

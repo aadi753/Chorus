@@ -6,11 +6,28 @@
 #include "otg_params.h"
 
 namespace OnlineTraj {
+
+    /**
+     * @brief Class for Online Trajectory Generation (OTG) for a single degree of freedom.
+     *
+     * This class implements a C3 nonlinear filter for trajectory generation,
+     * supporting jerk, acceleration, and velocity constraints.
+     */
     class OTG {
     public:
+        /**
+         * @brief Default constructor.
+         */
         OTG( ) { }
+        /**
+         * @brief Destructor.
+         */
         ~OTG( ) { }
 
+        /**
+         * @brief Set the target parameters for trajectory generation.
+         * @param params The OTGParams struct containing target and constraint values.
+         */
         void setTarget( const OnlineTraj::OTGParams& params ) {
             params_ = params;
             if ( flag ) {
@@ -19,29 +36,109 @@ namespace OnlineTraj {
             }
         }
 
+        /**
+         * @brief Compute the next trajectory point and update the output.
+         * @param output Reference to OTGOutput struct to be filled with the result.
+         */
         void getTrajectory( OnlineTraj::OTGOutput& output ) {
             nonLinearFilterC3_( );
             output = output_;
         }
 
+        /**
+         * @brief Pass the output state to the input for the next iteration.
+         * @param output The OTGOutput struct to use as the new input state.
+         */
         void passToInput( OnlineTraj::OTGOutput& output );
     private:
+        /**
+         * @brief Compute normalized errors for position, velocity, and acceleration.
+         */
         void computeNormalizedError_( );
+        /**
+         * @brief Update motion constraints based on target parameters.
+         */
         void updateMotionConstraints_( );
+        /**
+         * @brief Apply the C3 nonlinear filter to compute the control variable.
+         * @return True if successful, false otherwise.
+         */
         bool nonLinearFilterC3_( );
+        /**
+         * @brief Compute the control variable uc.
+         * @return True if successful.
+         */
         bool computeUc_( );
+        /**
+         * @brief Compute the velocity control variable for a given velocity constraint.
+         * @param vel The velocity constraint.
+         * @return The computed control variable.
+         */
         double computeUv_( double& vel );
+        /**
+         * @brief Compute the final control variable uk.
+         * @return True if successful.
+         */
         bool computeUk_( );
+        /**
+         * @brief Compute the control variable for a given velocity (ucv).
+         * @param vel The velocity constraint.
+         * @return The computed ucv value.
+         */
         double computeUcv_( double& vel );
+        /**
+         * @brief Compute the delta value for a given velocity.
+         * @param vel The velocity constraint.
+         * @return The computed delta_v value.
+         */
         double computeDeltaV_( double& vel );
+        /**
+         * @brief Compute the control variable for a given acceleration constraint.
+         * @param acc The acceleration constraint.
+         * @return The computed ua value.
+         */
         double computeUa_( double& acc );
+        /**
+         * @brief Get the sign of delta.
+         * @param delta The delta value.
+         * @return 1 if positive, -1 if negative, 0 if zero.
+         */
         int getSignOfDelta_( const double& delta );
+        /**
+         * @brief Integrate the control variable to update position, velocity, and acceleration.
+         */
         void integrateControlVariable_( );
+        /**
+         * @brief Compute the sigma parameter for the C3 filter.
+         * @return The computed sigma value.
+         */
         double computeSigma_( );
+        /**
+         * @brief Compute the mu_positive parameter for the C3 filter.
+         * @return The computed mu_positive value.
+         */
         double computeMuPositive_( );
+        /**
+         * @brief Compute the mu_negative parameter for the C3 filter.
+         * @return The computed mu_negative value.
+         */
         double computeMuNegative_( );
+        /**
+         * @brief Compute the summation parameter for the C3 filter.
+         * @return The computed summation value.
+         */
         double computeSummation_( );
+        /**
+         * @brief Get the sign of the summation.
+         * @param summation The summation value.
+         * @return 1 if positive, -1 if negative, 0 if zero.
+         */
         int getSignOfSummation_( const double& summation );
+        /**
+         * @brief Get the sign of a value.
+         * @param value The value to check.
+         * @return 1 if positive, -1 if negative, 0 if zero.
+         */
         int getSign( double value );
 
         OnlineTraj::OTGParams params_;
@@ -82,7 +179,5 @@ namespace OnlineTraj {
 
     };
 };
-
-
 
 #endif /* OTG_H_ */
