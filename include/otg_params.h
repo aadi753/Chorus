@@ -49,11 +49,19 @@ namespace OnlineTraj {
 
     };
 
+    struct ControllerGains {
+        double kp = 0;
+        double kd = 0;
+        double ki = 0;
+        double upper_limit = 0;
+        double lower_limit = 0;
+    };
     typedef std::vector<double> OTGTargetPosition;
 
 
 
     typedef std::vector<OTGParams> MultiDofOTGParams;
     typedef std::vector<OTGOutput> MultiDofOTGOutput;
+    typedef std::vector<ControllerGains> MultiDofOTGControllerGains;
 };
 #endif /* OTG_PARAMS_H_ */

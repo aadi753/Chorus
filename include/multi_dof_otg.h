@@ -19,6 +19,7 @@ namespace OnlineTraj {
 
         void update( const OnlineTraj::OTGConstraints& constraints, const OnlineTraj::OTGTargetPosition& target, OnlineTraj::SystemStates& states );
 
+        void setGains( OnlineTraj::MultiDofOTGControllerGains& gains );
 
     private:
         bool checkTargetupdate_( const MultiDofOTGParams& params );
@@ -29,7 +30,7 @@ namespace OnlineTraj {
         void checkForConstraintsUpdate_( const OnlineTraj::OTGConstraints& constraints );
         void checkForTargetUpdate_( const OnlineTraj::OTGTargetPosition& target_position );
         void fillParams_( );
-
+        void computeError_( );
 
         void setSystemStates_( const OnlineTraj::SystemStates& states ) {
             system_states_ = states;
@@ -50,7 +51,13 @@ namespace OnlineTraj {
          */
         void computeJerkDurations_( );
         void computeConstantVelocityDurations_( );
+        void resetIntegeral_( );
+        void clampIntegeralError_( );
+        
+        std::vector<double>position_error_;
+        std::vector<double>integeral_error_;;
 
+        OnlineTraj::MultiDofOTGControllerGains gains_;
         MultiDofOTGParams params_;
         MultiDofOTGParams final_otg_params_;
 
