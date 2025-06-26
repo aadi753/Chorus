@@ -1,16 +1,34 @@
+/**
+ * @file multi_dof_otg.h
+ * @author Aditya SIngh (aditya.in753@gmail.com)
+ * @brief  header file for the Mulit DOF Online Trajectory Generator
+ * t
+
+
+ * @version 0.1
+ * @date 2025-06-26
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #ifndef MULTI_DOF_OTG_H_
 #define MULTI_DOF_OTG_H_
 
 #include "otg.h"
 #include <bits/stdc++.h>
 
-namespace OnlineTraj {
+namespace Chorus {
 
     /**
      * @brief Multi-DOF Online Trajectory Generator.
      *
-     * This class manages multiple single-DOF OTGs to generate synchronized trajectories for multi-DOF systems.
-     */
+     *This class is responsible for managing the mulitple DOFs for which the trajectory is to be generated, it ensures the constrainst are not violated and the trajectory is generated in a synchronized manne
+        * If the user wants to get high tracking performance then this class also supports a tracking controller whose gains can be set in the initial setup of the Trajectory Generator or else if the controller is not to be used then the user can set the gains to zero and the trajectory will be generated without any control.
+
+        @note This class  outputs position,velocity,acceleration and jerk for all the DOFs at each iteration,the controller output works on the velocity term so use the velocity term along with controller if your system works in velocity control else just use the position term. directly.
+
+        */
     class MultiDofOtg {
     public:
         /**
@@ -39,13 +57,13 @@ namespace OnlineTraj {
          * @param target The target positions for all DOFs.
          * @param states The current system states.
          */
-        void update( const OnlineTraj::OTGConstraints& constraints, const OnlineTraj::OTGTargetPosition& target, OnlineTraj::SystemStates& states );
+        void update( const Chorus::OTGConstraints& constraints, const Chorus::OTGTargetPosition& target, Chorus::SystemStates& states );
 
         /**
          * @brief Set the controller gains for all DOFs.
          * @param gains The controller gains.
          */
-        void setGains( OnlineTraj::MultiDofOTGControllerGains& gains );
+        void setGains( Chorus::MultiDofOTGControllerGains& gains );
 
     private:
         /**
@@ -75,12 +93,12 @@ namespace OnlineTraj {
          * @brief Check if the constraints have changed.
          * @param constraints The new constraints.
          */
-        void checkForConstraintsUpdate_( const OnlineTraj::OTGConstraints& constraints );
+        void checkForConstraintsUpdate_( const Chorus::OTGConstraints& constraints );
         /**
          * @brief Check if the target positions have changed.
          * @param target_position The new target positions.
          */
-        void checkForTargetUpdate_( const OnlineTraj::OTGTargetPosition& target_position );
+        void checkForTargetUpdate_( const Chorus::OTGTargetPosition& target_position );
         /**
          * @brief Fill the OTG parameters for each DOF from constraints and targets.
          */
@@ -94,7 +112,7 @@ namespace OnlineTraj {
          * @brief Set the system states for all DOFs.
          * @param states The new system states.
          */
-        void setSystemStates_( const OnlineTraj::SystemStates& states ) {
+        void setSystemStates_( const Chorus::SystemStates& states ) {
             system_states_ = states;
         }
         /**
@@ -125,7 +143,7 @@ namespace OnlineTraj {
         std::vector<double>integeral_error_;;
 
         // controller gains for all DOFs
-        OnlineTraj::MultiDofOTGControllerGains gains_;
+        Chorus::MultiDofOTGControllerGains gains_;
 
         //params for all dofs
         MultiDofOTGParams params_;
@@ -138,13 +156,13 @@ namespace OnlineTraj {
         std::vector<double>diff_vec_;
 
         //constraints for all dofs
-        OnlineTraj::OTGConstraints constraints_;
+        Chorus::OTGConstraints constraints_;
 
         // target position for all dofs
-        OnlineTraj::OTGTargetPosition target_position_;
+        Chorus::OTGTargetPosition target_position_;
 
         // system states for all dofs
-        OnlineTraj::SystemStates system_states_;
+        Chorus::SystemStates system_states_;
 
         // max displacement joint index and value
         int max_displacement_idx_;
@@ -157,7 +175,7 @@ namespace OnlineTraj {
         MultiDofOTGOutput output_;
 
         //vector of single DOF OTGs
-        std::vector<OnlineTraj::OTG> otg_;
+        std::vector<Chorus::OTG> otg_;
 
         // flag to check if the target parameters have changed
         bool is_target_updated_ = false;

@@ -10,9 +10,9 @@
 
 int main( ) {
 
-    OnlineTraj::OTG otg;
-    OnlineTraj::OTGParams params;
-    OnlineTraj::OTGOutput output;
+    Chorus::OTG otg;
+    Chorus::OTGParams params;
+    Chorus::OTGOutput output;
     params.sampling_rate = 0.001; // 1 ms
     params.max_velocity = 2.0;
     params.max_acceleration = 2.0;
@@ -97,7 +97,7 @@ int main( ) {
     plt::plot( vel );
     plt::plot( acc );
     // plt::plot( jerk );
-
+    plt::grid( true );
     plt::show( );
     return 0;
 }

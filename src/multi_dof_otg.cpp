@@ -1,15 +1,17 @@
 #include "multi_dof_otg.h"
 
 
-OnlineTraj::MultiDofOtg::MultiDofOtg( ) {
+Chorus::MultiDofOtg::MultiDofOtg( ) {
     // Constructor initializes the number of degrees of freedom to zero
 }
 
-OnlineTraj::MultiDofOtg::~MultiDofOtg( ) {
+Chorus::MultiDofOtg::~MultiDofOtg( ) {
     // Destructor does nothing for now
 }
 
-void OnlineTraj::MultiDofOtg::setDof( const int dof ) {
+void Chorus::MultiDofOtg::setDof( const int dof ) {
+    // Set the number of degrees of freedom and resize the vectors accordingly
+
     dof_ = dof;
     otg_.resize( dof_ );
     output_.resize( dof_ );
@@ -26,7 +28,8 @@ void OnlineTraj::MultiDofOtg::setDof( const int dof ) {
     integeral_error_.resize( dof_ );
 }
 
-// void OnlineTraj::MultiDofOtg::setTarget( const MultiDofOTGParams& params ) {
+//! DO NOT uncomment this shit :/
+// void Chorus::MultiDofOtg::setTarget( const MultiDofOTGParams& params ) {
 //     if ( !checkTargetupdate_( params ) ) {
 //         params_ = params;
 
@@ -42,14 +45,15 @@ void OnlineTraj::MultiDofOtg::setDof( const int dof ) {
 // }
 
 
-void OnlineTraj::MultiDofOtg::update( const OnlineTraj::OTGConstraints& constraints,
-    const OnlineTraj::OTGTargetPosition& target, OnlineTraj::SystemStates& states ) {
+void Chorus::MultiDofOtg::update( const Chorus::OTGConstraints& constraints,
+    const Chorus::OTGTargetPosition& target, Chorus::SystemStates& states ) {
 
-    // updateConstraits_( constraints );
-    // updateTargetPosition_( target );
+    // set the system states
     setSystemStates_( states );
 
+    //check for contraints updates
     checkForConstraintsUpdate_( constraints );
+    // check for target updates
     checkForTargetUpdate_( target );
 
     if ( is_constraints_updated_ ) {
@@ -64,10 +68,13 @@ void OnlineTraj::MultiDofOtg::update( const OnlineTraj::OTGConstraints& constrai
         is_target_updated_ = false;
     }
 
+    // fill the params ,if nothing changes then the old params will be used 
     fillParams_( );
     if ( should_recompute_ ) {
+        // recompute the new params for the dofs based on the constraints and target
         recompute_( );
         should_recompute_ = false;
+        // since target is updated we need reset the integeral else it may cause jerks while using controller
         resetIntegeral_( );
     }
 
@@ -79,17 +86,31 @@ void OnlineTraj::MultiDofOtg::update( const OnlineTraj::OTGConstraints& constrai
 }
 
 
-void OnlineTraj::MultiDofOtg::resetIntegeral_( ) {
+/**
+ * @brief resets the integeral error for all DOFs.
+ *
+ */
+void Chorus::MultiDofOtg::resetIntegeral_( ) {
     for ( int i = 0; i < dof_; i++ ) {
         integeral_error_ [i] = 0;
     }
 }
 
-void OnlineTraj::MultiDofOtg::setGains( OnlineTraj::MultiDofOTGControllerGains& gains ) {
+/**
+ * @brief sets the gains for all dofs
+ *
+ * @param gains
+ */
+void Chorus::MultiDofOtg::setGains( Chorus::MultiDofOTGControllerGains& gains ) {
     gains_ = gains;
 }
 
-void OnlineTraj::MultiDofOtg::computeError_( ) {
+
+/**
+ * @brief computes the error for all dofs to be used by the controller
+ *
+ */
+void Chorus::MultiDofOtg::computeError_( ) {
 
     for ( int i = 0; i < dof_; i++ ) {
         position_error_ [i] = output_ [i].position - system_states_.initial_position [i];
@@ -99,7 +120,11 @@ void OnlineTraj::MultiDofOtg::computeError_( ) {
 }
 
 
-void OnlineTraj::MultiDofOtg::clampIntegeralError_( ) {
+/**
+ * @brief clamps the integeral
+ *
+ */
+void Chorus::MultiDofOtg::clampIntegeralError_( ) {
     for ( int i = 0; i < dof_; i++ ) {
         if ( integeral_error_ [i] > gains_ [i].upper_limit ) {
             integeral_error_ [i] = gains_ [i].upper_limit;
@@ -110,7 +135,12 @@ void OnlineTraj::MultiDofOtg::clampIntegeralError_( ) {
     }
 }
 
-void OnlineTraj::MultiDofOtg::getOutput( MultiDofOTGOutput& output ) {
+/**
+ * @brief gets the output from all otg's and performs the controller calculations if gains are set
+ *
+ * @param output
+ */
+void Chorus::MultiDofOtg::getOutput( MultiDofOTGOutput& output ) {
     output.resize( dof_ );
     for ( int i = 0; i < dof_; i++ ) {
         otg_ [i].getTrajectory( output_ [i] );
@@ -118,7 +148,9 @@ void OnlineTraj::MultiDofOtg::getOutput( MultiDofOTGOutput& output ) {
     computeError_( );
 
     for ( size_t i = 0; i < dof_; i++ )
-    {
+    {   // you can add the derivative term on your own if needed , but this works pretty good for the systems 
+
+        //! use the velocity term if the system works in velocity control else use the position term directly of if needed then write a controller in the wrapper where this output will be used.
         output [i].position = output_ [i].position;
         output [i].velocity = output_ [i].velocity + ( gains_ [i].kp * position_error_ [i] ) + ( gains_ [i].ki * integeral_error_ [i] );
         output [i].acceleration = output_ [i].acceleration;
@@ -128,7 +160,8 @@ void OnlineTraj::MultiDofOtg::getOutput( MultiDofOTGOutput& output ) {
     // output = output_;
 }
 
-bool OnlineTraj::MultiDofOtg::checkTargetupdate_( const MultiDofOTGParams& params ) {
+// check for target updates
+bool Chorus::MultiDofOtg::checkTargetupdate_( const MultiDofOTGParams& params ) {
     // Check if the target parameters have changed
     for ( int i = 0; i < dof_; i++ ) {
         if ( params [i].target_position != params_ [i].target_position ||
@@ -145,7 +178,12 @@ bool OnlineTraj::MultiDofOtg::checkTargetupdate_( const MultiDofOTGParams& param
     return true;
 }
 
-double OnlineTraj::MultiDofOtg::computeTrajectoryDuration_( ) {
+/**
+ * @brief computes  the trajectory durations based on constraints and target parameters.
+ *
+ * @return double
+ */
+double Chorus::MultiDofOtg::computeTrajectoryDuration_( ) {
     findMaxDisplacement_( );
     computeTJStar_( );
     computeJerkDurations_( );
@@ -156,7 +194,11 @@ double OnlineTraj::MultiDofOtg::computeTrajectoryDuration_( ) {
     return final_time_;
 }
 
-void OnlineTraj::MultiDofOtg::findMaxDisplacement_( ) {
+/**
+ * @brief finds which dof has max displacement
+ *
+ */
+void Chorus::MultiDofOtg::findMaxDisplacement_( ) {
 
     if ( diff_vec_.size( ) != 0 ) {
         diff_vec_.clear( );
@@ -188,12 +230,20 @@ void OnlineTraj::MultiDofOtg::findMaxDisplacement_( ) {
 
 }
 
-
-void  OnlineTraj::MultiDofOtg::computeTJStar_( ) {
+/**
+ * @brief computes tj_sta
+ *
+ */
+void  Chorus::MultiDofOtg::computeTJStar_( ) {
     TJ_star_ = ( Amax_ / Jmax_ );
 
 }
-void OnlineTraj::MultiDofOtg::computeJerkDurations_( ) {
+
+/**
+ * @brief computes jerk durations
+ *
+ */
+void Chorus::MultiDofOtg::computeJerkDurations_( ) {
     //? assuming case 1:
     Vlim_ = Vmax_;
 
@@ -223,7 +273,11 @@ void OnlineTraj::MultiDofOtg::computeJerkDurations_( ) {
     }
 }
 
-void OnlineTraj::MultiDofOtg::computeConstantVelocityDurations_( ) {
+/**
+ * @brief computes constant velocity durations and if velocity is reachable then finds the optimal achievable velocity
+ *
+ */
+void Chorus::MultiDofOtg::computeConstantVelocityDurations_( ) {
 
 
     Tv_ = ( displacement_ / Vmax_ ) - ( ( Ta_ / 2 ) * ( 1 + V0_ [maxDistIndex_] / Vmax_ ) ) - ( ( Td_ / 2 ) * ( 1 + V1_ [maxDistIndex_] / Vmax_ ) );
@@ -302,8 +356,11 @@ void OnlineTraj::MultiDofOtg::computeConstantVelocityDurations_( ) {
 
 }
 
-
-void OnlineTraj::MultiDofOtg::computeConstraintsFromTrajDuration_( ) {
+/**
+ * @brief finds the optimal constraints for the other DOFs
+ *
+ */
+void Chorus::MultiDofOtg::computeConstraintsFromTrajDuration_( ) {
     double alpha = 0.4, beta = 0.2;   //? do not change these values unless you know what they do!!.
 
     for ( size_t i = 0; i < dof_; i++ ) {
@@ -360,14 +417,24 @@ void OnlineTraj::MultiDofOtg::computeConstraintsFromTrajDuration_( ) {
     }
 
 }
-void OnlineTraj::MultiDofOtg::recompute_( ) {
+
+/**
+ * @brief recomputes the trajectory and constraints based on the current target and constraints.
+ *
+ */
+void Chorus::MultiDofOtg::recompute_( ) {
     computeTrajectoryDuration_( );
     computeConstraintsFromTrajDuration_( );
 
 
 }
 
-void OnlineTraj::MultiDofOtg::checkForConstraintsUpdate_( const OnlineTraj::OTGConstraints& constraints ) {
+/**
+ * @brief checks for the updates in the constraints
+ *
+ * @param constraints
+ */
+void Chorus::MultiDofOtg::checkForConstraintsUpdate_( const Chorus::OTGConstraints& constraints ) {
     if ( constraints_.sampling_rate != constraints.sampling_rate ||
         constraints_.max_velocity != constraints.max_velocity ||
         constraints_.max_acceleration != constraints.max_acceleration ||
@@ -382,7 +449,13 @@ void OnlineTraj::MultiDofOtg::checkForConstraintsUpdate_( const OnlineTraj::OTGC
 
 }
 
-void OnlineTraj::MultiDofOtg::checkForTargetUpdate_( const OnlineTraj::OTGTargetPosition& target ) {
+
+/**
+ * @brief checks for the updates in the target position
+ *
+ * @param target
+ */
+void Chorus::MultiDofOtg::checkForTargetUpdate_( const Chorus::OTGTargetPosition& target ) {
     for ( size_t i = 0; i < dof_; i++ )
     {
         if ( target_position_ [i] != target [i] ) {
@@ -394,7 +467,11 @@ void OnlineTraj::MultiDofOtg::checkForTargetUpdate_( const OnlineTraj::OTGTarget
 
 }
 
-void OnlineTraj::MultiDofOtg::fillParams_( ) {
+/**
+ * @brief fills the parameters to be used by the OTG for each dof.
+ *
+ */
+void Chorus::MultiDofOtg::fillParams_( ) {
     for ( size_t i = 0; i < dof_; i++ )
     {
         params_ [i].sampling_rate = constraints_.sampling_rate;

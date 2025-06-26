@@ -5,10 +5,10 @@
 #define DOF_ 3
 
 int main( ) {
-    // OnlineTraj::MultiDofOtg multi_dof_otg;
+    // Chorus::MultiDofOtg multi_dof_otg;
     // multi_dof_otg.setDof( DOF_ );
 
-    // OnlineTraj::MultiDofOTGParams params;
+    // Chorus::MultiDofOTGParams params;
     // params.resize( DOF_ );
     // // Set some example parameters for each degree of freedom
     // for ( int i = 0; i < DOF_; ++i ) {
@@ -24,7 +24,7 @@ int main( ) {
     // }
 
     // multi_dof_otg.setTarget( params );
-    // OnlineTraj::MultiDofOTGOutput output;
+    // Chorus::MultiDofOTGOutput output;
     // double t = 0;
     // int joint_id = 0;
     // std::vector<double>pos, vel, acc, jerk;

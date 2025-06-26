@@ -3,7 +3,7 @@
 /**
  * @brief Compute normalized errors for position, velocity, and acceleration.
  */
-void OnlineTraj::OTG::computeNormalizedError_( ) {
+void Chorus::OTG::computeNormalizedError_( ) {
     // Compute normalized error based on the target parameters
     U_ = params_.max_jerk;
     error_pos_ = ( output_.position - params_.target_position ) / U_;
@@ -18,7 +18,7 @@ void OnlineTraj::OTG::computeNormalizedError_( ) {
 /**
  * @brief Update motion constraints based on the target parameters.
  */
-void OnlineTraj::OTG::updateMotionConstraints_( ) {
+void Chorus::OTG::updateMotionConstraints_( ) {
     // Update motion constraints based on the target parameters
     min_velocity_ = ( params_.min_velocity - params_.target_velocity ) / U_;
     max_velocity_ = ( params_.max_velocity - params_.target_velocity ) / U_;
@@ -31,7 +31,7 @@ void OnlineTraj::OTG::updateMotionConstraints_( ) {
  * @brief Compute the sigma parameter for the C3 filter.
  * @return The computed sigma value.
  */
-double OnlineTraj::OTG::computeSigma_( ) {
+double Chorus::OTG::computeSigma_( ) {
     // Compute sigma based on the current error and motion constraints
     // double sigma = error_pos_ + ( error_vel_ * error_acc_ * sign_ ) - ( ( std::pow( error_acc_, 3 ) / 6.0 ) * ( 1 - 3 * std::abs( sign_ ) ) + ( ( sign_ / 4.0 ) * sqrt( 2 * std::pow( ( ( error_acc_ * error_acc_ ) + ( 2 * error_vel_ * sign_ ) ), 3 ) ) ) );
 
@@ -50,7 +50,7 @@ double OnlineTraj::OTG::computeSigma_( ) {
  * @brief Compute the mu_positive parameter for the C3 filter.
  * @return The computed mu_positive value.
  */
-double OnlineTraj::OTG::computeMuPositive_( ) {
+double Chorus::OTG::computeMuPositive_( ) {
     // Compute mu_positive based on the current error and motion constraints
     // double mu_positive = error_pos_ - ( ( max_acceleration_ * ( std::pow( error_acc_, 2 ) - ( 2 * error_vel_ ) ) ) / 4.0 ) - ( ( std::pow( ( std::pow( error_acc_, 2 ) - ( 2 * error_vel_ ) ), 2 ) ) / ( 8 * max_velocity_ ) ) - ( ( error_acc_ * ( ( 3 * error_vel_ ) - std::pow( error_acc_, 2 ) ) ) / 3.0 );
 
@@ -64,7 +64,7 @@ double OnlineTraj::OTG::computeMuPositive_( ) {
  * @brief Compute the mu_negative parameter for the C3 filter.
  * @return The computed mu_negative value.
  */
-double OnlineTraj::OTG::computeMuNegative_( ) {
+double Chorus::OTG::computeMuNegative_( ) {
     double mu_negative = error_pos_ - ( ( min_acceleration_ * ( std::pow( error_acc_, 2 ) + ( 2 * error_vel_ ) ) ) / 4.0 ) - ( ( std::pow( ( std::pow( error_acc_, 2 ) + ( 2 * error_vel_ ) ), 2 ) ) / ( 8 * min_acceleration_ ) ) + ( ( error_acc_ * ( ( 3 * error_vel_ ) + std::pow( error_acc_, 2 ) ) ) / 3.0 );
 
     return mu_negative;
@@ -74,7 +74,7 @@ double OnlineTraj::OTG::computeMuNegative_( ) {
  * @brief Compute the summation parameter for the C3 filter.
  * @return The computed summation value.
  */
-double OnlineTraj::OTG::computeSummation_( ) {
+double Chorus::OTG::computeSummation_( ) {
     if ( error_acc_ <= max_acceleration_ && error_vel_ <= ( ( std::pow( error_acc_, 2 ) / 2.0 ) - std::pow( max_acceleration_, 2 ) ) ) {
         return mu_positive_;
     }
@@ -92,7 +92,7 @@ double OnlineTraj::OTG::computeSummation_( ) {
  * @brief Compute the control variable uc.
  * @return True if successful.
  */
-bool OnlineTraj::OTG::computeUc_( ) {
+bool Chorus::OTG::computeUc_( ) {
 
     double expr = summation_ + ( 1.0 - std::abs( sign_summation_ ) ) * ( delta_ + ( 1.0 - std::abs( sign_ ) ) * error_acc_ );
     uc_ = ( -U_ * getSign( expr ) );
@@ -103,7 +103,7 @@ bool OnlineTraj::OTG::computeUc_( ) {
  * @brief Compute the final control variable uk.
  * @return True if successful.
  */
-bool OnlineTraj::OTG::computeUk_( ) {
+bool Chorus::OTG::computeUk_( ) {
     double uv_min = computeUv_( min_velocity_ );
     double uv_max = computeUv_( max_velocity_ );
     uk_ = std::max( uv_min, std::min( uc_, uv_max ) );
@@ -116,7 +116,7 @@ bool OnlineTraj::OTG::computeUk_( ) {
  * @param vel The velocity constraint.
  * @return The computed control variable.
  */
-double  OnlineTraj::OTG::computeUv_( double& vel ) {
+double  Chorus::OTG::computeUv_( double& vel ) {
     double ua_min = computeUa_( min_acceleration_ );
     double ua_max = computeUa_( max_acceleration_ );
     double ucv = computeUcv_( vel );
@@ -133,7 +133,7 @@ double  OnlineTraj::OTG::computeUv_( double& vel ) {
  * @param vel The velocity constraint.
  * @return The computed ucv value.
  */
-double OnlineTraj::OTG::computeUcv_( double& vel ) {
+double Chorus::OTG::computeUcv_( double& vel ) {
     double delta_v = computeDeltaV_( vel );
 
     ucv_ = ( -U_ * getSign( delta_v + ( 1 - std::abs( getSign( delta_v ) ) ) * error_acc_ ) );
@@ -147,7 +147,7 @@ double OnlineTraj::OTG::computeUcv_( double& vel ) {
  * @param vel The velocity constraint.
  * @return The computed delta_v value.
  */
-double OnlineTraj::OTG::computeDeltaV_( double& vel ) {
+double Chorus::OTG::computeDeltaV_( double& vel ) {
     delta_v_ = ( error_acc_ * std::abs( error_acc_ ) ) + ( 2 * ( error_vel_ - vel ) );
     // std::cout << "delta_v: " << delta_v_ << "\n";
     return delta_v_;
@@ -158,7 +158,7 @@ double OnlineTraj::OTG::computeDeltaV_( double& vel ) {
  * @param acc The acceleration constraint.
  * @return The computed ua value.
  */
-double OnlineTraj::OTG::computeUa_( double& acc ) {
+double Chorus::OTG::computeUa_( double& acc ) {
     // std::cout << ( error_acc_ - acc ) << "\n";
     ua_ = ( -U_ * getSign( error_acc_ - acc ) );
     // std::cout << "ua: " << ua_ << "\n";
@@ -170,7 +170,7 @@ double OnlineTraj::OTG::computeUa_( double& acc ) {
  * @brief Apply the C3 nonlinear filter to the control variable.
  * @return True if successful, false otherwise.
  */
-bool OnlineTraj::OTG::nonLinearFilterC3_( ) {
+bool Chorus::OTG::nonLinearFilterC3_( ) {
 
     // Apply C3 nonlinear filter to the control variable
     computeNormalizedError_( );
@@ -209,7 +209,7 @@ bool OnlineTraj::OTG::nonLinearFilterC3_( ) {
 /**
  * @brief Integrate the control variable to update position, velocity, and acceleration.
  */
-void OnlineTraj::OTG::integrateControlVariable_( ) {
+void Chorus::OTG::integrateControlVariable_( ) {
 
     output_.acceleration = ( prev_acc_ + params_.sampling_rate * uk_prev_ );
     // std::cout<< "acceleration: " << output_.acceleration << "\n";
@@ -227,7 +227,7 @@ void OnlineTraj::OTG::integrateControlVariable_( ) {
  * @param delta The delta value.
  * @return 1 if positive, -1 if negative, 0 if zero.
  */
-int OnlineTraj::OTG::getSignOfDelta_( const double& delta ) {
+int Chorus::OTG::getSignOfDelta_( const double& delta ) {
     if ( delta > 0 ) {
         return 1;
     }
@@ -242,7 +242,7 @@ int OnlineTraj::OTG::getSignOfDelta_( const double& delta ) {
  * @param summation The summation value.
  * @return 1 if positive, -1 if negative, 0 if zero.
  */
-int OnlineTraj::OTG::getSignOfSummation_( const double& summation ) {
+int Chorus::OTG::getSignOfSummation_( const double& summation ) {
     if ( summation > 0 ) {
         return 1;
     }
@@ -257,7 +257,7 @@ int OnlineTraj::OTG::getSignOfSummation_( const double& summation ) {
  * @param value The value to check.
  * @return 1 if positive, -1 if negative, 0 if zero.
  */
-int OnlineTraj::OTG::getSign( double value ) {
+int Chorus::OTG::getSign( double value ) {
     if ( value > 0 ) {
         return 1;
     }
@@ -271,7 +271,7 @@ int OnlineTraj::OTG::getSign( double value ) {
  * @brief Pass the output state to the input for the next iteration.
  * @param output The OTGOutput struct to use as the new input state.
  */
-void OnlineTraj::OTG::passToInput( OnlineTraj::OTGOutput& output ) {
+void Chorus::OTG::passToInput( Chorus::OTGOutput& output ) {
     // Pass the output to the input
     // params_.initial_position = output.position;
     // params_.target_position = output.position;

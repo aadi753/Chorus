@@ -1,13 +1,23 @@
+/**
+ * @file otg_params.h
+ * @author Aditya Singh (aditya.in753@gmail.com)
+ * @brie Header file for the Online Trajectory Generator (OTG) parameters and output structures.
+ * @version 0.1
+ * @date 2025-06-27
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #ifndef OTG_PARAMS_H_
 #define OTG_PARAMS_H_
 
 #include <vector>
 
 
-#define DOF 1
 
 
-namespace OnlineTraj {
+namespace Chorus {
 
     /**
      * @brief Parameters for single-DOF OTG.

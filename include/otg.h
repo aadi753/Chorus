@@ -1,3 +1,14 @@
+/**
+ * @file otg.h
+ * @author Aditya Singh (aditya.in753@gmail.com)
+ * @brief  Header file for the Online Trajectory Generator (OTG). for single degree of freedom.
+ * @version 0.1
+ * @date 2025-06-27
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #ifndef OTG_H_
 #define OTG_H_
 
@@ -5,13 +16,16 @@
 #include <math.h>
 #include "otg_params.h"
 
-namespace OnlineTraj {
+namespace Chorus {
 
     /**
      * @brief Class for Online Trajectory Generation (OTG) for a single degree of freedom.
      *
      * This class implements a C3 nonlinear filter for trajectory generation,
      * supporting jerk, acceleration, and velocity constraints.
+     *
+     * The role of this class is to compute the optimal trajectory based on the target parameters and constraints
+        it generates a constant jerk which is then used to compute the acceleration, velocity and position of the system.
      */
     class OTG {
     public:
@@ -28,7 +42,7 @@ namespace OnlineTraj {
          * @brief Set the target parameters for trajectory generation.
          * @param params The OTGParams struct containing target and constraint values.
          */
-        void setTarget( const OnlineTraj::OTGParams& params ) {
+        void setTarget( const Chorus::OTGParams& params ) {
             params_ = params;
             if ( flag ) {
                 prev_pos_ = params_.initial_position;
@@ -40,7 +54,7 @@ namespace OnlineTraj {
          * @brief Compute the next trajectory point and update the output.
          * @param output Reference to OTGOutput struct to be filled with the result.
          */
-        void getTrajectory( OnlineTraj::OTGOutput& output ) {
+        void getTrajectory( Chorus::OTGOutput& output ) {
             nonLinearFilterC3_( );
             output = output_;
         }
@@ -49,7 +63,7 @@ namespace OnlineTraj {
          * @brief Pass the output state to the input for the next iteration.
          * @param output The OTGOutput struct to use as the new input state.
          */
-        void passToInput( OnlineTraj::OTGOutput& output );
+        void passToInput( Chorus::OTGOutput& output );
     private:
         /**
          * @brief Compute normalized errors for position, velocity, and acceleration.
@@ -141,15 +155,16 @@ namespace OnlineTraj {
          */
         int getSign( double value );
 
-        OnlineTraj::OTGParams params_;
-        OnlineTraj::OTGOutput output_;
+        Chorus::OTGParams params_;
+        Chorus::OTGOutput output_;
 
         // normalized error variables
         double error_pos_ = 0;
         double error_vel_ = 0;
         double error_acc_ = 0;
 
-        // motion constraints
+        // motion constraints , these are not the constraints for the actuator but the constrainst for the trajectory
+        // and ofcourse these should be less than the actuator constraints
         double max_velocity_ = 0;
         double min_acceleration_ = 0;
         double min_velocity_ = 0;
