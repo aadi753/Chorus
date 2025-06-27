@@ -3,7 +3,7 @@
  * @author Aditya Singh (aditya.in753@gmail.com)
  * @brief  Header file for the Online Trajectory Generator (OTG). for single degree of freedom.
  * @version 0.1
- * @date 2025-06-27
+ * @date 2025-06-23
  *
  * @copyright Copyright (c) 2025
  *
@@ -24,7 +24,7 @@ namespace Chorus {
      * This class implements a C3 nonlinear filter for trajectory generation,
      * supporting jerk, acceleration, and velocity constraints.
      *
-     * The role of this class is to compute the optimal trajectory based on the target parameters and constraints
+     * The role of this class is to compute the optimal trajectory based on target parameters and constraints,
         it generates a constant jerk which is then used to compute the acceleration, velocity and position of the system.
      */
     class OTG {

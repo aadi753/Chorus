@@ -2,11 +2,9 @@
  * @file multi_dof_otg.h
  * @author Aditya SIngh (aditya.in753@gmail.com)
  * @brief  header file for the Mulit DOF Online Trajectory Generator
- * t
-
 
  * @version 0.1
- * @date 2025-06-26
+ * @date 2025-06-23
  *
  * @copyright Copyright (c) 2025
  *
@@ -23,10 +21,10 @@ namespace Chorus {
     /**
      * @brief Multi-DOF Online Trajectory Generator.
      *
-     *This class is responsible for managing the mulitple DOFs for which the trajectory is to be generated, it ensures the constrainst are not violated and the trajectory is generated in a synchronized manne
-        * If the user wants to get high tracking performance then this class also supports a tracking controller whose gains can be set in the initial setup of the Trajectory Generator or else if the controller is not to be used then the user can set the gains to zero and the trajectory will be generated without any control.
+     *This class is responsible for managing the mulitple DOFs for which the trajectories are to be generated, it ensures the constraints are not violated and the trajectories are generated in a synchronized manner
+        * If the user wants to get high tracking performance then this class also supports a tracking controller whose gains can be set in the initial setup of the Trajectory Generator or else if the controller is not to be used then the user can set the gains to zero and the trajectory will be generated without any controller.
 
-        @note This class  outputs position,velocity,acceleration and jerk for all the DOFs at each iteration,the controller output works on the velocity term so use the velocity term along with controller if your system works in velocity control else just use the position term. directly.
+        @note This class outputs position,velocity,acceleration and jerk for all the DOFs at each iteration,the controller output works on the velocity term so use the velocity term along with controller if your system works in velocity control else just use the position term. directly.
 
         */
     class MultiDofOtg {
