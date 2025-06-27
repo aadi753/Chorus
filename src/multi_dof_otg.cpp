@@ -361,7 +361,7 @@ void Chorus::MultiDofOtg::computeConstantVelocityDurations_( ) {
  *
  */
 void Chorus::MultiDofOtg::computeConstraintsFromTrajDuration_( ) {
-    double alpha = 0.4, beta = 0.2;   //? do not change these values unless you know what they do!!.
+    double alpha = 0.31, beta = 0.2;   //? do not change these values unless you know what they do!!.
 
     for ( size_t i = 0; i < dof_; i++ ) {
         if ( i == maxDistIndex_ ) {
