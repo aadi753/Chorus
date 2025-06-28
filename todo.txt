@@ -1,2 +1,0 @@
-1. add getTrajectoryDuration function
-2. make a wrapper over multi otg or in same class itself add functions that make the commanding easy

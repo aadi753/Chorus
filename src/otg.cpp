@@ -201,6 +201,11 @@ bool Chorus::OTG::nonLinearFilterC3_( ) {
     // computing uk
     computeUk_( );
 
+    //avoid the residual that may explode because of chattering
+    if ( std::abs( params_.max_jerk ) < 0.0001 ) {
+        // uk_prev_ = 0;
+        prev_acc_ = 0;
+    }
     // std::cout << "delta: " << delta_ << " sigma: " << sigma_ << " mu_positive: " << mu_positive_ << " mu_negative: " << mu_negative_ << " summation: " << summation_ << " sign_summation: " << sign_summation_ << " uc: " << uc_ << " uk: " << uk_ << "\n";
     integrateControlVariable_( );
     return true;
@@ -210,12 +215,12 @@ bool Chorus::OTG::nonLinearFilterC3_( ) {
  * @brief Integrate the control variable to update position, velocity, and acceleration.
  */
 void Chorus::OTG::integrateControlVariable_( ) {
-
     output_.acceleration = ( prev_acc_ + params_.sampling_rate * uk_prev_ );
     // std::cout<< "acceleration: " << output_.acceleration << "\n";
     output_.velocity = ( prev_vel_ + ( ( params_.sampling_rate * 0.5 ) * ( output_.acceleration + prev_acc_ ) ) );
     output_.position = ( prev_pos_ + ( ( params_.sampling_rate * 0.5 ) * ( output_.velocity + prev_vel_ ) ) );
     output_.jerk = uk_;
+
 
     passToInput( output_ );
 

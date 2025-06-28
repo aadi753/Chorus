@@ -155,6 +155,8 @@ void Chorus::MultiDofOtg::getOutput( MultiDofOTGOutput& output ) {
         output [i].velocity = output_ [i].velocity + ( gains_ [i].kp * position_error_ [i] ) + ( gains_ [i].ki * integeral_error_ [i] );
         output [i].acceleration = output_ [i].acceleration;
         output [i].jerk = output_ [i].jerk;
+
+
     }
 
     // output = output_;
@@ -189,7 +191,7 @@ double Chorus::MultiDofOtg::computeTrajectoryDuration_( ) {
     computeJerkDurations_( );
     computeConstantVelocityDurations_( );
     // final_time_ = Ta_ + Tv_ + Td_;
-    std::cout << "final time: " << final_time_ << "\n";
+    // std::cout << "final time: " << final_time_ << "\n";
 
     return final_time_;
 }
@@ -217,7 +219,7 @@ void Chorus::MultiDofOtg::findMaxDisplacement_( ) {
 
     max_displacement_ = diff_vec_ [maxDistIndex_];
 
-    std::cout << maxDistIndex_ << "\n";
+    // std::cout << maxDistIndex_ << "\n";
 
     Vmax_ = params_ [maxDistIndex_].max_velocity;
     Vmin_ = params_ [maxDistIndex_].min_velocity;
@@ -388,6 +390,7 @@ void Chorus::MultiDofOtg::computeConstraintsFromTrajDuration_( ) {
             Td_ = Ta_;
             Tj1_ = Tj2_ = beta * Ta_;
             Tv_ = final_time_ - ( 2 * Ta_ );
+            
 
             final_otg_params_ [i].sampling_rate = params_ [i].sampling_rate;
             final_otg_params_ [i].initial_position = params_ [i].initial_position;
@@ -459,7 +462,7 @@ void Chorus::MultiDofOtg::checkForTargetUpdate_( const Chorus::OTGTargetPosition
     for ( size_t i = 0; i < dof_; i++ )
     {
         if ( target_position_ [i] != target [i] ) {
-            std::cout << "target position for dof: " << i << " has changed\n";
+            // std::cout << "target position for dof: " << i << " has changed\n";
             is_target_updated_ = true;
             target_position_ [i] = target [i];
         }

@@ -30,3 +30,31 @@ target_link_libraries(multi_dof_otg_test PUBLIC
     Chorus
     ${Python3_LIBRARIES}
 )
+
+add_executable(example_multi_dof_target_update
+    bin/example_multi_dof_target_update.cpp
+)
+
+target_link_libraries(example_multi_dof_target_update PUBLIC
+    Chorus
+    ${Python3_LIBRARIES}
+)
+
+add_executable(example_multi_dof_target_and_constraints_update
+    bin/example_multi_dof_target_and_constraints_update.cpp
+)
+
+target_link_libraries(example_multi_dof_target_and_constraints_update PUBLIC
+    Chorus
+    ${Python3_LIBRARIES}
+)
+
+
+add_executable(example_multi_dof_constraints_update
+    bin/example_multi_dof_constraints_update.cpp
+)
+
+target_link_libraries(example_multi_dof_constraints_update PUBLIC
+    Chorus
+    ${Python3_LIBRARIES}
+)
