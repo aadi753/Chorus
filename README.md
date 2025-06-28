@@ -1,4 +1,6 @@
 # 🎼 Chorus
+<img alt="Static Badge" src="https://img.shields.io/badge/build-passing-red?logo=github">
+
 
 **Chorus** is a high-performance **Multi-DOF Online Trajectory Generator** designed for robotic applications that demand real-time, smooth, and synchronized motion planning — all while respecting system constraints. With built-in jerk limiting and trajectory tracking, Chorus delivers optimal motion profiles with ultra-low latency.
 
