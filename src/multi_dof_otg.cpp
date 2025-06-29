@@ -191,7 +191,10 @@ double Chorus::MultiDofOtg::computeTrajectoryDuration_( ) {
     computeJerkDurations_( );
     computeConstantVelocityDurations_( );
     // final_time_ = Ta_ + Tv_ + Td_;
-    // std::cout << "final time: " << final_time_ << "\n";
+    if ( DEBUG ) {
+
+        std::cout << "final time: " << final_time_ << "\n";
+    }
 
     return final_time_;
 }
@@ -219,7 +222,10 @@ void Chorus::MultiDofOtg::findMaxDisplacement_( ) {
 
     max_displacement_ = diff_vec_ [maxDistIndex_];
 
-    // std::cout << maxDistIndex_ << "\n";
+    if ( DEBUG ) {
+
+        std::cout << "dof:" << maxDistIndex_ << "has max displacement" << "\n";
+    }
 
     Vmax_ = params_ [maxDistIndex_].max_velocity;
     Vmin_ = params_ [maxDistIndex_].min_velocity;
@@ -390,7 +396,7 @@ void Chorus::MultiDofOtg::computeConstraintsFromTrajDuration_( ) {
             Td_ = Ta_;
             Tj1_ = Tj2_ = beta * Ta_;
             Tv_ = final_time_ - ( 2 * Ta_ );
-            
+
 
             final_otg_params_ [i].sampling_rate = params_ [i].sampling_rate;
             final_otg_params_ [i].initial_position = params_ [i].initial_position;
@@ -405,17 +411,20 @@ void Chorus::MultiDofOtg::computeConstraintsFromTrajDuration_( ) {
 
         }
 
-        std::cout << "final params for dof: " << i << "\n";
-        std::cout << "sampling rate: " << final_otg_params_ [i].sampling_rate << "\n";
-        std::cout << "initial position: " << final_otg_params_ [i].initial_position << "\n";
-        std::cout << "target position: " << final_otg_params_ [i].target_position << "\n";
-        std::cout << "max velocity: " << final_otg_params_ [i].max_velocity << "\n";
-        std::cout << "min velocity: " << final_otg_params_ [i].min_velocity << "\n";
-        std::cout << "max acceleration: " << final_otg_params_ [i].max_acceleration << "\n";
-        std::cout << "min acceleration: " << final_otg_params_ [i].min_acceleration << "\n";
-        std::cout << "max jerk: " << final_otg_params_ [i].max_jerk << "\n";
-        std::cout << "min jerk: " << final_otg_params_ [i].min_jerk << "\n";
-        std::cout << "----------------------------------------------------\n";
+        if ( DEBUG ) {
+
+            std::cout << "final params for dof: " << i << "\n";
+            std::cout << "sampling rate: " << final_otg_params_ [i].sampling_rate << "\n";
+            std::cout << "initial position: " << final_otg_params_ [i].initial_position << "\n";
+            std::cout << "target position: " << final_otg_params_ [i].target_position << "\n";
+            std::cout << "max velocity: " << final_otg_params_ [i].max_velocity << "\n";
+            std::cout << "min velocity: " << final_otg_params_ [i].min_velocity << "\n";
+            std::cout << "max acceleration: " << final_otg_params_ [i].max_acceleration << "\n";
+            std::cout << "min acceleration: " << final_otg_params_ [i].min_acceleration << "\n";
+            std::cout << "max jerk: " << final_otg_params_ [i].max_jerk << "\n";
+            std::cout << "min jerk: " << final_otg_params_ [i].min_jerk << "\n";
+            std::cout << "----------------------------------------------------\n";
+        }
 
     }
 
