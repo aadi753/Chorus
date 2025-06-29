@@ -19,7 +19,6 @@ int main( ) {
     // setting up Chorus ,these are mandatory steps!
     Chorus::MultiDofOtg otg;
     Chorus::MultiDofOTGOutput output;
-    Chorus::MultiDofOTGParams params;
     Chorus::OTGConstraints constraints;
     Chorus::OTGTargetPosition target;
     Chorus::SystemStates states;
@@ -28,7 +27,6 @@ int main( ) {
     otg.setDof( dof );
 
     // do not forget to resize
-    params.resize( dof );
     target.resize( dof );
     gains.resize( dof );
 
@@ -95,7 +93,7 @@ int main( ) {
         otg.getOutput( output );
 
         // updating the current state 
-        states.initial_position = { output [0].position,output [1].position };
+        states.initial_position = { output [0].position,output [1].position,output[2].position,output[3].position,output[4].position,output[5].position };
 
         // updating the system with desired data
         otg.update( constraints, target, states );

@@ -20,7 +20,6 @@ int main( ) {
     // setting up Chorus ,these are mandatory steps!
     Chorus::MultiDofOtg otg;
     Chorus::MultiDofOTGOutput output;
-    Chorus::MultiDofOTGParams params;
     Chorus::OTGConstraints constraints;
     Chorus::OTGTargetPosition target;
     Chorus::SystemStates states;
@@ -29,7 +28,6 @@ int main( ) {
     otg.setDof( dof );
 
     // do not forget to resize
-    params.resize( dof );
     target.resize( dof );
     gains.resize( dof );
     
