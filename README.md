@@ -96,7 +96,7 @@ otg.update(constraints, target, states); // udpates the required data for Chorus
 ## Deep Dive into the Chorus objects and structures
 ### - These are the all the data sturctures that you will need in order to setup your system.
 
-- Chorus::MultiDofOtg otg
+- **Chorus::MultiDofOtg otg**
 
 ```.cpp
 Chorus::MultiDofOtg otg;
@@ -104,7 +104,7 @@ Chorus::MultiDofOtg otg;
 
 - This is a wrapper class over the single dof OTG object this class is used to handle multiple DOF's ,it has the controller and the responsiblity to maintain Synchronization among the set DOF's in the system
 
-- Chorus::MultiDofOTGOutput output;
+- **Chorus::MultiDofOTGOutput output**
 
 ```.cpp
 Chorus::MultiDofOTGOutput output;
@@ -120,7 +120,7 @@ Chorus::MultiDofOTGOutput output;
 
 - This is the vector of output structure that will have the output of position ,velocity ,acceleration ,jerk when the getTrajectory method is called with this sturcture pass to it.
 
-- Chorus::OTGConstraints constraints
+- **Chorus::OTGConstraints constraints**
 
 ```.cpp
 Chorus::OTGConstraints constraints;
@@ -138,9 +138,10 @@ struct OTGConstraints {
 
 - This is the structure that hold the constraints that are shared among all the DOF's in the system.
 - NOTE: the constraints should not be more than your systems max limits and these values are in rad/s for velocity and rad/s^2 for acceleration and rad/s^3 for jerk.
-- These constraints are not you system constrainst but are the trajectory constraints that you want for the motion so use them accordingly.
 
-- Chorus::OTGTargetPosition target
+- **These constraints are not you system constrainst but are the trajectory constraints that you want for the motion so use them accordingly.**
+
+- **Chorus::OTGTargetPosition target**
 
 ```.cpp
 Chorus::OTGTargetPosition target;
@@ -148,7 +149,7 @@ Chorus::OTGTargetPosition target;
 
 - This is a vector that will hold the target positions
 
-- Chorus::SystemStates states
+- **Chorus::SystemStates states**
 
 ```.cpp
 Chorus::SystemStates states;
@@ -164,9 +165,9 @@ struct SystemStates {
 - For now use the initial_position term to be sent in feedback ,velocity and acceleration feedbacks are not being used by Chorus as of not ,they are here for just in case :).
 - Each index of this vector will have the states of the corresponding DOF.
 
-- NOTE: State feedback should be sent to Chorus in every control cycle.
+- **NOTE: State feedback should be sent to Chorus in every control cycle.**
 
-- Chorus::MultiDofOTGControllerGains
+- **Chorus::MultiDofOTGControllerGains**
 
 ```.cpp
 Chorus::MultiDofOTGControllerGains gains;
