@@ -12,7 +12,7 @@
   Generates smooth, optimal trajectories on the fly for any number of degrees of freedom.
 
 - ⏱️ **Fast Execution**  
-  Optimized for real-time performance — computation time is **under 3 milliseconds**.
+  Optimized for real-time performance — computation time is **under 1 milliseconds to compute the output in each control cycle**.
 
 - 🔄 **Dynamic Target Updates**  
   Targets and constraints can be updated **during motion** without stopping the system.
@@ -35,7 +35,7 @@
 
 ## Sample profile for a 1 DOF system
 
-![Chorus Architecture](images/single_dof_test.png)
+ ![Chorus Architecture](images/single_dof_test.png)
 
 - blue is target position
 - orange is output position
@@ -43,6 +43,7 @@
 - red is output acceleration
 
 - Jerk output **(Chorus outputs a constant jerk)**
+
   ![Chorus Architecture](images/Figure_2.png)
 
 - In the first image a visible noise is visible in acceleration but it is taken care of by Chorus therefore the velocity and position profiles are smooth.
@@ -51,7 +52,7 @@
 
 - **2 DOF system**
 - Target position are updated, constraints are kept same for the whole duration
-  ![Chorus Architecture](images/Figure_1_target_updated.png)
+ ![Chorus Architecture](images/Figure_1_target_updated.png)
 
 - blue and red curves show the position outputs for each dof.
 - orange and purple curves show the velocity outputs for each dof.
@@ -99,9 +100,9 @@
 
 ### Okay ,so what we got?
 
-1. smooth motion ✅🚀
-2. constraints respected ✅🚀
-3. targets updates handled properly ✅🚀
+1. Smooth motion ✅🚀
+2. Constraints respected ✅🚀
+3. Targets updates handled properly ✅🚀
 4. Synchronized motion ✅🚀
 
 ### Great! Now let's see what we can do next
@@ -110,11 +111,15 @@
 
 ### Why not, Chorus can do handle that too 🚀
 
-![Chorus Architecture](images/Figure_3_constraints_updated.png)
+  ![Chorus Architecture](images/Figure_3_constraints_updated.png)
 
-- blue and red curves show the position outputs for each dof.
-- orange and purple curves show the velocity outputs for each dof.
-- green and brown show the acceleration outputs for each dof.
+- Blue and red curves show the position outputs for each dof.
+- Orange and purple curves show the velocity outputs for each dof.
+- Green and brown show the acceleration outputs for each dof.
+
+- **NOTE: When the constraints are changed in a way such that the velocity is coming from a higher value to lower value then make sure to put the right values in contraints otherwise it may cause a little bit of overshoot or oscillation and sometimes the sync can be a little off so make sure the Constraints values are set accordingly.**
+
+**Its pure game of right Constraints values.**
 
 ### Let's see how we can do that
 
@@ -178,9 +183,9 @@
 
 ### Okay ,so what we got?
 
-1. smooth motion ✅🚀
-2. constraints respected ✅🚀
-3. targets updates handled properly ✅🚀
+1. Smooth motion ✅🚀
+2. Constraints respected ✅🚀
+3. Targets updates handled properly ✅🚀
 4. Synchronized motion ✅🚀
 
 ### Okay! What's next?
@@ -192,9 +197,9 @@
 - **Haah! Too easy**
 - **Here we goooo**
   ![Chorus Architecture](images/Figure_2_constraints_and_target_updated.png)
-- blue and red curves show the position outputs for each dof.
-- orange and purple curves show the velocity outputs for each dof.
-- green and brown show the acceleration outputs for each dof.
+- Blue and red curves show the position outputs for each dof.
+- Orange and purple curves show the velocity outputs for each dof.
+- GGreen and brown show the acceleration outputs for each dof.
 
 ### Let's see how we can do that
 
@@ -241,9 +246,9 @@
 
 ### Okay ,so what we got?
 
-1. smooth motion ✅🚀
-2. constraints respected ✅🚀
-3. targets updates handled properly ✅🚀
+1. Smooth motion ✅🚀
+2. Constraints respected ✅🚀
+3. Targets updates handled properly ✅🚀
 4. Synchronized motion ✅🚀
 
 ### Okayyyy!🤩 What about 6 DOF's??
@@ -252,25 +257,29 @@
 
 - **And Chorus can do it too for you!** 🎶
   ![Chorus Architecture](images/Figure_4_6_dof_sync_position_plot.png)
-  - position plots for 6 DOF's
+  - Position plots for 6 DOF's
 
-![Chorus Architecture](images/Figure_5_6_dof_sync_velocity_plot.png)
+  ![Chorus Architecture](images/Figure_5_6_dof_sync_velocity_plot.png)
 
-- velocity plots for 6 DOF's
+- Velocity plots for 6 DOF's
 
 ### Okay ,so what we got?
 
-1. smooth motion ✅🚀
-2. constraints respected ✅🚀
-3. targets updates handled properly ✅🚀
+1. Smooth motion ✅🚀
+2. Constraints respected ✅🚀
+3. Targets updates handled properly ✅🚀
 4. Synchronized motion ✅🚀
 
 ## Let's have a quick look at the controller output when the controller is used
 
-![Chorus Architecture](images/fig1.png)
+  ![Chorus Architecture](images/fig1.png)
 
-- controller output for 2 dof
-- the velocity plots are the controller outputs (purple and orange curves)
+- Controller output for 2 dof
+- The velocity plots are the controller outputs (purple and orange curves)
+
+- The controller in Chorus is working as a small corrector in every iteration.
+- Controller output = (output.velocity + correction term based on position error).
+- So basically it is feedforward velocity + some correction term
 
 ---
 
