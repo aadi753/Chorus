@@ -342,7 +342,7 @@ otg.update(constraints, target, states); // udpates the required data for Chorus
 
 ```
 
-- ##So now we know what are the required initializations required in order to use Chorus ,refer to the coded examples in the bin folder to see how to use Chorus in your project.
+- ## So now we know what are the required initializations required in order to use Chorus ,refer to the coded examples in the bin folder to see how to use Chorus in your project.
 
 ---
 
