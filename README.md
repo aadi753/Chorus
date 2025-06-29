@@ -30,10 +30,250 @@
   Includes a responsive trajectory tracking controller for **high tracking accuracy**.
 
 ---
+
+## **Before diving in let's see what Chorus can do for you:**
+
 ## Sample profile for a 1 DOF system
 
-![Chorus Architecture](images/single dof test.png)
+![Chorus Architecture](images/single_dof_test.png)
+
+- blue is target position
+- orange is output position
+- green is output velocity
+- red is output acceleration
+
+- Jerk output **(Chorus outputs a constant jerk)**
+  ![Chorus Architecture](images/Figure_2.png)
+
+- In the first image a visible noise is visible in acceleration but it is taken care of by Chorus therefore the velocity and position profiles are smooth.
+
+## Okay! one DOF is not too fun , let's see what Chorus can do for you with 2 DOF
+
+- **2 DOF system**
+- Target position are updated, constraints are kept same for the whole duration
+  ![Chorus Architecture](images/Figure_1_target_updated.png)
+
+- blue and red curves show the position outputs for each dof.
+- orange and purple curves show the velocity outputs for each dof.
+- green and brown show the acceleration outputs for each dof.
+
+- sample of how the targets were updated and what constraints were used.
+
+```.cpp
+ // setting up the initial contraints
+    constraints.sampling_rate = 0.001;
+    constraints.max_velocity = 2.0; // rad/s
+    constraints.min_velocity = -2.0;
+    constraints.max_acceleration = 2.0; // rad/s^2
+    constraints.min_acceleration = -2.0;
+    constraints.max_jerk = 4.0; // rad/s^3
+    constraints.min_jerk = -4.0;
+
+
+
+// go to the target with the constraints sets above
+        if ( t > 0 && t < 10 ) {
+            target = { 5,2 };
+        }
+        // setting new target
+        else if ( t > 10 && t < 15 ) {
+            target = { 0,0 };
+
+        }
+        // setting new target
+        else if ( t > 15 && t < 25 ) {
+            target = { -7,-4 };
+
+
+        }
+        // setting new target
+        else if ( t > 25 && t < 45 ) {
+            target = { 1,1 };
+        }
+        // setting new target
+        else {
+            target = { 0,0 };
+        }
+
+```
+
+### Okay ,so what we got?
+
+1. smooth motion ✅🚀
+2. constraints respected ✅🚀
+3. targets updates handled properly ✅🚀
+4. Synchronized motion ✅🚀
+
+### Great! Now let's see what we can do next
+
+### How about changing the Constraints this time ??
+
+### Why not, Chorus can do handle that too 🚀
+
+![Chorus Architecture](images/Figure_3_constraints_updated.png)
+
+- blue and red curves show the position outputs for each dof.
+- orange and purple curves show the velocity outputs for each dof.
+- green and brown show the acceleration outputs for each dof.
+
+### Let's see how we can do that
+
+```.cpp
+// setting up the initial contraints
+   constraints.sampling_rate = 0.001;
+   constraints.max_velocity = 2.0; // rad/s
+   constraints.min_velocity = -2.0;
+   constraints.max_acceleration = 2.0; // rad/s^2
+   constraints.min_acceleration = -2.0;
+   constraints.max_jerk = 4.0; // rad/s^3
+   constraints.min_jerk = -4.0;
+
+
+ // go to the target with the constraints sets above
+       if ( t > 0 && t < 6 ) {
+           target = { 5,2 };
+
+       }
+       // setting new target and modifying the constraints
+       else if ( t > 6 && t < 10 ) {
+           target = { 0,0 };
+           constraints.sampling_rate = 0.001;
+           constraints.max_velocity = 1.0;
+           constraints.min_velocity = -1.0;
+           constraints.max_acceleration = 2.0;
+           constraints.min_acceleration = -2.0;
+           constraints.max_jerk = 4.0;
+           constraints.min_jerk = -4.0;
+       }
+
+       // setting new target and modifying the constraints
+       else if ( t > 10 && t < 25 ) {
+           target = { -7,-4 };
+           constraints.sampling_rate = 0.001;
+           constraints.max_velocity = 1.5;
+           constraints.min_velocity = -1.5;
+           constraints.max_acceleration = 2.7;
+           constraints.min_acceleration = -2.7;
+           constraints.max_jerk = 3.0;
+           constraints.min_jerk = -3.0;
+
+       }
+
+       // setting new target and modifying the constraints
+       else if ( t > 25 && t < 45 ) {
+           target = { 1,1 };
+           constraints.sampling_rate = 0.001;
+           constraints.max_velocity = 1.0;
+           constraints.min_velocity = -1.0;
+           constraints.max_acceleration = 1.0;
+           constraints.min_acceleration = -1.0;
+           constraints.max_jerk = 4.0;
+           constraints.min_jerk = -4.0;
+       }
+       else {
+           target = { 0,0 };
+       }
+
+```
+
+### Okay ,so what we got?
+
+1. smooth motion ✅🚀
+2. constraints respected ✅🚀
+3. targets updates handled properly ✅🚀
+4. Synchronized motion ✅🚀
+
+### Okay! What's next?
+
+### Show us what more you got Chorus!
+
+### What about changing the target and constraints together? 🤔
+
+- **Haah! Too easy**
+- **Here we goooo**
+  ![Chorus Architecture](images/Figure_2_constraints_and_target_updated.png)
+- blue and red curves show the position outputs for each dof.
+- orange and purple curves show the velocity outputs for each dof.
+- green and brown show the acceleration outputs for each dof.
+
+### Let's see how we can do that
+
+```.cpp
+// setting up the initial contraints
+   constraints.sampling_rate = 0.001;
+   constraints.max_velocity = 2.0; // rad/s
+   constraints.min_velocity = -2.0;
+   constraints.max_acceleration = 2.0; // rad/s^2
+   constraints.min_acceleration = -2.0;
+   constraints.max_jerk = 4.0; // rad/s^3
+   constraints.min_jerk = -4.0;
+
+
+ // go to the target with the constraints sets above
+        if ( t > 0 && t < 10 ) {
+            target = { 5,2 };
+        }
+        // setting new target
+        else if ( t > 10 && t < 15 ) {
+            target = { 0,0 };
+
+        }
+        // setting new target and modifying the constraints
+        else if ( t > 15 && t < 25 ) {
+            target = { -7,-4 };
+            constraints.max_velocity = 1.0;
+            constraints.min_velocity = -1.0;
+            constraints.max_acceleration = 0.9;
+            constraints.min_acceleration = -0.9;
+            constraints.max_jerk = 1.5;
+            constraints.min_jerk = -1.5;
+
+        }
+        // setting new target
+        else if ( t > 25 && t < 45 ) {
+            target = { 1,1 };
+        }
+        // setting new target
+        else {
+            target = { 0,0 };
+        }
+```
+
+### Okay ,so what we got?
+
+1. smooth motion ✅🚀
+2. constraints respected ✅🚀
+3. targets updates handled properly ✅🚀
+4. Synchronized motion ✅🚀
+
+### Okayyyy!🤩 What about 6 DOF's??
+
+### Why not... just Do it let's see what happens
+
+- **And Chorus can do it too for you!** 🎶
+  ![Chorus Architecture](images/Figure_4_6_dof_sync_position_plot.png)
+  - position plots for 6 DOF's
+
+![Chorus Architecture](images/Figure_5_6_dof_sync_velocity_plot.png)
+
+- velocity plots for 6 DOF's
+
+### Okay ,so what we got?
+
+1. smooth motion ✅🚀
+2. constraints respected ✅🚀
+3. targets updates handled properly ✅🚀
+4. Synchronized motion ✅🚀
+
+## Let's have a quick look at the controller output when the controller is used
+
+![Chorus Architecture](images/fig1.png)
+
+- controller output for 2 dof
+- the velocity plots are the controller outputs (purple and orange curves)
+
 ---
+
 ## 🛠️ Getting Started
 
 ### ✅ Basic Setup Example (Crucial Initialization)
@@ -94,6 +334,7 @@ otg.update(constraints, target, states); // udpates the required data for Chorus
 ---
 
 ## Deep Dive into the Chorus objects and structures
+
 ### - These are the all the data sturctures that you will need in order to setup your system.
 
 - **Chorus::MultiDofOtg otg**
@@ -183,8 +424,6 @@ Chorus::MultiDofOTGControllerGains gains;
 ```
 
 - This vector of structure holds the gains for the controller.
-
-
 
 ---
 
