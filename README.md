@@ -1,6 +1,6 @@
 # 🎼 Chorus
 
-<img alt="Static Badge" src="https://img.shields.io/badge/build-passing-red?logo=github"> <img alt="Static Badge" src="https://img.shields.io/badge/license-GPL--3.0--license-green?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/trajectory--generation-blue?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/online--planning-yellow?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/robotics-purple?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/C%2B%2B-white?style=flat">
+<img alt="Static Badge" src="https://img.shields.io/badge/build-passing-red?logo=github"> <img alt="Static Badge" src="https://img.shields.io/badge/branch-main-pink?logo=github"> <img alt="Static Badge" src="https://img.shields.io/badge/license-GPL--3.0--license-green?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/trajectory--generation-blue?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/online--planning-yellow?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/robotics-purple?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/C%2B%2B-white?style=flat">
 
 **Chorus** is a high-performance **Multi-DOF Online Trajectory Generator** designed for robotic applications that demand real-time, smooth, and synchronized motion planning — all while respecting system constraints. With built-in jerk limiting and trajectory tracking, Chorus delivers optimal motion profiles with ultra-low latency.
 
@@ -469,3 +469,4 @@ mkdir build && cd build
 cmake ..
 make -j4
 ```
+# HAPPY TRAJECTORY PLANNING ✔😎
