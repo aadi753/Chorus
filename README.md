@@ -32,15 +32,14 @@
 ---
 
 ## **Before diving in let's see what Chorus can do for you:**
-
-## Sample profile for a 1 DOF system
+### Sample profile for a 1 DOF system
 
  ![Chorus Architecture](images/single_dof_test.png)
 
-- blue is target position
-- orange is output position
-- green is output velocity
-- red is output acceleration
+- Blue is target position
+- Orange is output position
+- Green is output velocity
+- Red is output acceleration
 
 - Jerk output **(Chorus outputs a constant jerk)**
 
@@ -54,12 +53,14 @@
 - Target position are updated, constraints are kept same for the whole duration
  ![Chorus Architecture](images/Figure_1_target_updated.png)
 
-- blue and red curves show the position outputs for each dof.
-- orange and purple curves show the velocity outputs for each dof.
-- green and brown show the acceleration outputs for each dof.
-
-- sample of how the targets were updated and what constraints were used.
-
+- Blue and red curves show the position outputs for each dof.
+- Orange and purple curves show the velocity outputs for each dof.
+- Green and brown show the acceleration outputs for each dof.
+---
+## NOTE: READ THE FULL README AND READ ALL THE COMMENTS IN THE EXAMPLES FOR THE BEST UNDERSTANDING OF HOW TO DO THINGS 
+---
+### Sample of how the targets were updated and what constraints were used.
+- **Refer to the coded examples in bin folder to get proper understanding of how to do things this is just sample snippet.**
 ```.cpp
  // setting up the initial contraints
     constraints.sampling_rate = 0.001;
@@ -104,6 +105,7 @@
 2. Constraints respected ✅🚀
 3. Targets updates handled properly ✅🚀
 4. Synchronized motion ✅🚀
+---
 
 ### Great! Now let's see what we can do next
 
@@ -122,7 +124,7 @@
 **Its pure game of right Constraints values.**
 
 ### Let's see how we can do that
-
+- **Refer to the coded examples in bin folder to get proper understanding of how to do things this is just sample snippet.**
 ```.cpp
 // setting up the initial contraints
    constraints.sampling_rate = 0.001;
@@ -187,8 +189,9 @@
 2. Constraints respected ✅🚀
 3. Targets updates handled properly ✅🚀
 4. Synchronized motion ✅🚀
+---
 
-### Okay! What's next?
+### Woahhhh!🚀 What's next?
 
 ### Show us what more you got Chorus!
 
@@ -199,10 +202,10 @@
   ![Chorus Architecture](images/Figure_2_constraints_and_target_updated.png)
 - Blue and red curves show the position outputs for each dof.
 - Orange and purple curves show the velocity outputs for each dof.
-- GGreen and brown show the acceleration outputs for each dof.
+- Green and brown show the acceleration outputs for each dof.
 
 ### Let's see how we can do that
-
+- **Refer to the coded examples in bin folder to get proper understanding of how to do things this is just sample snippet.**
 ```.cpp
 // setting up the initial contraints
    constraints.sampling_rate = 0.001;
@@ -250,8 +253,9 @@
 2. Constraints respected ✅🚀
 3. Targets updates handled properly ✅🚀
 4. Synchronized motion ✅🚀
+---
 
-### Okayyyy!🤩 What about 6 DOF's??
+### Impressive!🤩 What about 6 DOF's??
 
 ### Why not... just Do it let's see what happens
 
@@ -446,12 +450,14 @@ Chorus::MultiDofOTGControllerGains gains;
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
+## Prerequisites
 
 - C++17 or newer
 - Eigen3
+```bash
+sudo apt-get install libeigen3-dev
+```
+- python3
 - CMake ≥ 3.10
 
 ### Build Instructions
@@ -461,5 +467,5 @@ git clone https://github.com/aadi753/Chorus.git
 cd Chorus
 mkdir build && cd build
 cmake ..
-make
+make -j4
 ```
