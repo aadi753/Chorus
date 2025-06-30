@@ -111,7 +111,7 @@
 
 ### How about changing the Constraints this time ??
 
-### Why not, Chorus can do handle that too 🚀
+### Why not, Chorus can handle that too 🚀
 
   ![Chorus Architecture](images/Figure_3_constraints_updated.png)
 
