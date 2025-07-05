@@ -1,6 +1,6 @@
 # 🎼 Chorus
 
-<img alt="Static Badge" src="https://img.shields.io/badge/build-passing-red?logo=github"> <img alt="Static Badge" src="https://img.shields.io/badge/license-GPL--3.0--license-green?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/trajectory--generation-blue?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/online--planning-yellow?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/robotics-purple?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/C%2B%2B-white?style=flat">
+<img alt="Static Badge" src="https://img.shields.io/badge/build-passing-red?logo=github"> <img alt="Static Badge" src="https://img.shields.io/badge/branch-main-pink?logo=github"> <img alt="Static Badge" src="https://img.shields.io/badge/license-GPL--3.0--license-green?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/trajectory--generation-blue?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/online--planning-yellow?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/robotics-purple?style=flat"> <img alt="Static Badge" src="https://img.shields.io/badge/C%2B%2B-white?style=flat">
 
 **Chorus** is a high-performance **Multi-DOF Online Trajectory Generator** designed for robotic applications that demand real-time, smooth, and synchronized motion planning — all while respecting system constraints. With built-in jerk limiting and trajectory tracking, Chorus delivers optimal motion profiles with ultra-low latency.
 
@@ -111,7 +111,7 @@
 
 ### How about changing the Constraints this time ??
 
-### Why not, Chorus can do handle that too 🚀
+### Why not, Chorus can handle that too 🚀
 
   ![Chorus Architecture](images/Figure_3_constraints_updated.png)
 
@@ -257,9 +257,9 @@
 
 ### Impressive!🤩 What about 6 DOF's??
 
-### Why not... just Do it let's see what happens
+### Why not... just Do it and let's see what happens
 
-- **And Chorus can do it too for you!** 🎶
+- **And Chorus can do that too for you!** 🎶
   ![Chorus Architecture](images/Figure_4_6_dof_sync_position_plot.png)
   - Position plots for 6 DOF's
 
@@ -280,11 +280,12 @@
 
 - Controller output for 2 dof
 - The velocity plots are the controller outputs (purple and orange curves)
-
+- The controller works on the position error between the output position and the position feedback given to Chorus 
 - The controller in Chorus is working as a small corrector in every iteration.
 - Controller output = (output.velocity + correction term based on position error).
 - So basically it is feedforward velocity + some correction term
 
+- **NOTE: the state feedback to the controller was provided by a noise generator, so the controller was given the feedback as output + noise ( noise was within specified bounds) in order to mimic the behavior on hardware.** 
 ---
 
 ## 🛠️ Getting Started
@@ -394,6 +395,7 @@ struct OTGConstraints {
 - NOTE: the constraints should not be more than your systems max limits and these values are in rad/s for velocity and rad/s^2 for acceleration and rad/s^3 for jerk.
 
 - **These constraints are not you system constrainst but are the trajectory constraints that you want for the motion so use them accordingly.**
+- **Ofcourse the values should not be more than what your system can handle.**
 
 - **Chorus::OTGTargetPosition target**
 
@@ -452,12 +454,16 @@ Chorus::MultiDofOTGControllerGains gains;
 
 ## Prerequisites
 
-- C++17 or newer
+- C++14 or newer
 - Eigen3
 ```bash
 sudo apt-get install libeigen3-dev
 ```
 - python3
+- numpy
+```bash
+pip3 install numpy
+```
 - CMake ≥ 3.10
 
 ### Build Instructions
@@ -469,3 +475,4 @@ mkdir build && cd build
 cmake ..
 make -j4
 ```
+# HAPPY TRAJECTORY PLANNING ✔😎
