@@ -58,10 +58,11 @@ namespace Chorus {
          */
         void setTarget( const Chorus::OTGParams& params ) {
             params_ = params;
-            if ( flag ) {
-                prev_pos_ = params_.initial_position;
-                flag = false;
-            }
+            // if ( flag ) {
+                // prev_pos_ = params_.initial_position;
+                // prev_vel_ = params_.initial_velocity;
+            //     flag = false;
+            // }
         }
 
         /**
