@@ -384,17 +384,17 @@ void Chorus::MultiDofOtg::computeConstraintsFromTrajDuration_( ) {
             final_otg_params_ [i].min_jerk = params_ [i].min_jerk;
         }
         else {
-            Vmax_ = ( diff_vec_ [i] ) / ( ( 1 - alpha ) * final_time_ );
+            Vmax_ = ( diff_vec_ [i] ) / ( ( 1 - ALPHA ) * final_time_ );
             Amax_ =
-                diff_vec_ [i] / ( alpha * ( 1 - alpha ) * ( 1 - beta ) * pow( final_time_, 2 ) );
-            Jmax_ = diff_vec_ [i] / ( pow( alpha, 2 ) * beta * ( 1 - alpha ) * ( 1 - beta ) * pow( final_time_, 3 ) );
+                diff_vec_ [i] / ( ALPHA * ( 1 - ALPHA ) * ( 1 - BETA ) * pow( final_time_, 2 ) );
+            Jmax_ = diff_vec_ [i] / ( pow( ALPHA, 2 ) * BETA * ( 1 - ALPHA ) * ( 1 - BETA ) * pow( final_time_, 3 ) );
             Vlim_ = Vmax_;
             Alim_a_ = Amax_;
             Alim_d_ = -Alim_a_;
             Jmin_ = -Jmax_;
-            Ta_ = alpha * final_time_;
+            Ta_ = ALPHA * final_time_;
             Td_ = Ta_;
-            Tj1_ = Tj2_ = beta * Ta_;
+            Tj1_ = Tj2_ = BETA * Ta_;
             Tv_ = final_time_ - ( 2 * Ta_ );
 
 

@@ -29,7 +29,7 @@
 #include <iostream>
 #include <math.h>
 #include "otg_params.h"
-
+#include "config.h"
 namespace Chorus {
 
     /**
