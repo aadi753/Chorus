@@ -202,7 +202,7 @@ bool Chorus::OTG::nonLinearFilterC3_( ) {
     computeUk_( );
 
     //avoid the residual that may explode because of chattering
-    if ( std::abs( params_.max_jerk ) < 0.0001 ) {
+    if ( std::abs( params_.max_jerk ) < EPSILON) {
         // uk_prev_ = 0;
         prev_acc_ = 0;
     }
