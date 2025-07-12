@@ -84,10 +84,10 @@ int main( ) {
             constraints.sampling_rate = 0.001;
             constraints.max_velocity = 1.5;
             constraints.min_velocity = -1.5;
-            constraints.max_acceleration = 2.7;
-            constraints.min_acceleration = -2.7;
-            constraints.max_jerk = 3.0;
-            constraints.min_jerk = -3.0;
+            constraints.max_acceleration = 2.0;
+            constraints.min_acceleration = -2.0;
+            constraints.max_jerk = 1.0;
+            constraints.min_jerk = -1.0;
 
         }
 
