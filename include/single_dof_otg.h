@@ -165,6 +165,13 @@
          */
         int getSignOfSummation_( const double& summation );
         /**
+         * @brief Continuous saturation function for discrete-time sliding mode boundary layers.
+         * @param val Input value to be saturated.
+         * @param phi Boundary layer thickness.
+         * @return Saturated value in [-1, 1].
+         */
+        double sat_( double val, double phi );
+        /**
          * @brief Get the sign of a value.
          * @param value The value to check.
          * @return 1 if positive, -1 if negative, 0 if zero.

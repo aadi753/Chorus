@@ -6,6 +6,9 @@
 void Chorus::OTG::computeNormalizedError_( ) {
     // Compute normalized error based on the target parameters
     U_ = params_.max_jerk;
+    if ( std::abs( U_ ) < EPSILON ) {
+        U_ = EPSILON;
+    }
     error_pos_ = ( output_.position - params_.target_position ) / U_;
     error_vel_ = ( output_.velocity - params_.target_velocity ) / U_;
     error_acc_ = ( output_.acceleration - params_.target_acceleration ) / U_;
@@ -39,6 +42,9 @@ double Chorus::OTG::computeSigma_( ) {
     double term2 = error_vel_ * error_acc_ * sign_;
     double term3 = ( std::pow( error_acc_, 3 ) / 6.0 ) * ( 1.0 - 3.0 * std::abs( sign_ ) );
     double inner = std::pow( error_acc_, 2 ) + 2.0 * error_vel_ * sign_;
+    if ( inner < 0.0 ) {
+        inner = 0.0;
+    }
     double term4 = ( sign_ / 4.0 ) * std::sqrt( 2.0 * std::pow( inner, 3 ) );
 
     double sigma = term1 + term2 - term3 + term4;
@@ -93,9 +99,12 @@ double Chorus::OTG::computeSummation_( ) {
  * @return True if successful.
  */
 bool Chorus::OTG::computeUc_( ) {
-
-    double expr = summation_ + ( 1.0 - std::abs( sign_summation_ ) ) * ( delta_ + ( 1.0 - std::abs( sign_ ) ) * error_acc_ );
-    uc_ = ( -U_ * getSign( expr ) );
+    const double dt = params_.sampling_rate;
+    const double expr = summation_ + ( 1.0 - std::abs( sign_summation_ ) ) * ( delta_ + ( 1.0 - std::abs( sign_ ) ) * error_acc_ );
+    
+    // Continuous boundary layer for the position sliding surface to eliminate discrete relay chatter
+    const double phi_pos = std::max( EPSILON, 0.5 * std::abs( max_acceleration_ ) * ( dt * dt ) + ( std::pow( dt, 3 ) / 6.0 ) );
+    uc_ = -U_ * sat_( expr, phi_pos );
     return true;
 }
 
@@ -107,8 +116,27 @@ bool Chorus::OTG::computeUk_( ) {
     double uv_min = computeUv_( min_velocity_ );
     double uv_max = computeUv_( max_velocity_ );
     uk_ = std::max( uv_min, std::min( uc_, uv_max ) );
-    return true;
 
+    // Critical Deceleration Braking Envelope Guard:
+    // When decelerating to rest (target_velocity == 0), the maximum achievable deceleration without
+    // velocity zero-crossing overshoot is: |a_crit| = sqrt(2 * J_max * |v|).
+    // If |a| >= |a_crit|, applying maximum opposing jerk is required to ramp acceleration back to zero
+    // simultaneously as velocity reaches zero, preventing negative velocity ripples.
+    if ( error_vel_ > 0.0 && error_acc_ < 0.0 && std::abs( params_.target_velocity ) < EPSILON ) {
+        const double a_crit = -std::sqrt( 2.0 * std::abs( error_vel_ ) );
+        if ( error_acc_ <= a_crit ) {
+            uk_ = std::max( uk_, U_ );
+        }
+    }
+    else if ( error_vel_ < 0.0 && error_acc_ > 0.0 && std::abs( params_.target_velocity ) < EPSILON ) {
+        const double a_crit = std::sqrt( 2.0 * std::abs( error_vel_ ) );
+        if ( error_acc_ >= a_crit ) {
+            uk_ = std::min( uk_, -U_ );
+        }
+    }
+
+    uk_ = std::max( -U_, std::min( U_, uk_ ) );
+    return true;
 }
 
 /**
@@ -116,16 +144,13 @@ bool Chorus::OTG::computeUk_( ) {
  * @param vel The velocity constraint.
  * @return The computed control variable.
  */
-double  Chorus::OTG::computeUv_( double& vel ) {
+double Chorus::OTG::computeUv_( double& vel ) {
     double ua_min = computeUa_( min_acceleration_ );
     double ua_max = computeUa_( max_acceleration_ );
     double ucv = computeUcv_( vel );
 
     uv_ = std::max( ua_min, std::min( ucv, ua_max ) );
-    // std::cout << "uv: " << uv_ << "\n";
     return uv_;
-
-
 }
 
 /**
@@ -135,10 +160,10 @@ double  Chorus::OTG::computeUv_( double& vel ) {
  */
 double Chorus::OTG::computeUcv_( double& vel ) {
     double delta_v = computeDeltaV_( vel );
-
-    ucv_ = ( -U_ * getSign( delta_v + ( 1 - std::abs( getSign( delta_v ) ) ) * error_acc_ ) );
-    // std::cout << "ucv: " << ucv_ << "\n";
-
+    const double dt = params_.sampling_rate;
+    const double phi_v = std::max( EPSILON, 2.0 * std::abs( max_acceleration_ ) * dt + ( dt * dt ) );
+    const double val = delta_v + ( 1.0 - std::abs( getSign( delta_v ) ) ) * error_acc_;
+    ucv_ = -U_ * sat_( val, phi_v );
     return ucv_;
 }
 
@@ -148,8 +173,7 @@ double Chorus::OTG::computeUcv_( double& vel ) {
  * @return The computed delta_v value.
  */
 double Chorus::OTG::computeDeltaV_( double& vel ) {
-    delta_v_ = ( error_acc_ * std::abs( error_acc_ ) ) + ( 2 * ( error_vel_ - vel ) );
-    // std::cout << "delta_v: " << delta_v_ << "\n";
+    delta_v_ = ( error_acc_ * std::abs( error_acc_ ) ) + ( 2.0 * ( error_vel_ - vel ) );
     return delta_v_;
 }
 
@@ -159,11 +183,16 @@ double Chorus::OTG::computeDeltaV_( double& vel ) {
  * @return The computed ua value.
  */
 double Chorus::OTG::computeUa_( double& acc ) {
-    // std::cout << ( error_acc_ - acc ) << "\n";
-    ua_ = ( -U_ * getSign( error_acc_ - acc ) );
-    // std::cout << "ua: " << ua_ << "\n";
+    const double diff = acc - error_acc_;
+    const double dt = params_.sampling_rate;
+    if ( dt > EPSILON ) {
+        const double j = ( diff / dt ) * U_;
+        ua_ = std::max( -U_, std::min( U_, j ) );
+    }
+    else {
+        ua_ = -U_ * getSign( error_acc_ - acc );
+    }
     return ua_;
-
 }
 
 /**
@@ -179,7 +208,6 @@ bool Chorus::OTG::nonLinearFilterC3_( ) {
     // computing delta
     delta_ = ( error_vel_ + ( ( error_acc_ * std::abs( error_acc_ ) ) / 2.0 ) );
     sign_ = getSignOfDelta_( delta_ );
-
 
     // computing sigma
     sigma_ = computeSigma_( );
@@ -201,12 +229,11 @@ bool Chorus::OTG::nonLinearFilterC3_( ) {
     // computing uk
     computeUk_( );
 
-    //avoid the residual that may explode because of chattering
+    // avoid the residual that may explode because of chattering
     if ( std::abs( params_.max_jerk ) < EPSILON ) {
-        // uk_prev_ = 0;
         prev_acc_ = 0;
     }
-    // std::cout << "delta: " << delta_ << " sigma: " << sigma_ << " mu_positive: " << mu_positive_ << " mu_negative: " << mu_negative_ << " summation: " << summation_ << " sign_summation: " << sign_summation_ << " uc: " << uc_ << " uk: " << uk_ << "\n";
+
     integrateControlVariable_( );
     return true;
 }
@@ -215,16 +242,55 @@ bool Chorus::OTG::nonLinearFilterC3_( ) {
  * @brief Integrate the control variable to update position, velocity, and acceleration.
  */
 void Chorus::OTG::integrateControlVariable_( ) {
-    output_.acceleration = ( prev_acc_ + params_.sampling_rate * uk_prev_ );
-    // std::cout<< "acceleration: " << output_.acceleration << "\n";
+    // Direct discrete-time integration using the current step's computed jerk (uk_)
+    // to eliminate 1-step phase lag and limit-cycle oscillation
+    output_.acceleration = ( prev_acc_ + params_.sampling_rate * uk_ );
     output_.velocity = ( prev_vel_ + ( ( params_.sampling_rate * 0.5 ) * ( output_.acceleration + prev_acc_ ) ) );
     output_.position = ( prev_pos_ + ( ( params_.sampling_rate * 0.5 ) * ( output_.velocity + prev_vel_ ) ) );
     output_.jerk = uk_;
 
+    // Terminal deadband settling check to eliminate discrete-time limit-cycle chattering and velocity ripple
+    const double pos_error = std::abs( output_.position - params_.target_position );
+    const double vel_error = std::abs( output_.velocity - params_.target_velocity );
+    const double acc_error = std::abs( output_.acceleration - params_.target_acceleration );
+
+    const double dt = params_.sampling_rate;
+    const double max_jerk = std::abs( params_.max_jerk );
+    const double max_acc = std::abs( params_.max_acceleration );
+    const double max_vel = std::abs( params_.max_velocity );
+
+    const double acc_tolerance = std::max( 1e-7, 2.0 * max_jerk * dt );
+    const double vel_tolerance = std::max( 1e-7, max_jerk * dt * dt + 1.5 * max_acc * dt );
+    const double pos_tolerance = std::max( 1e-7, max_vel * dt + 0.5 * max_acc * dt * dt );
+
+    if ( pos_error <= pos_tolerance && vel_error <= vel_tolerance && acc_error <= acc_tolerance ) {
+        output_.position = params_.target_position;
+        output_.velocity = params_.target_velocity;
+        output_.acceleration = params_.target_acceleration;
+        output_.jerk = 0.0;
+    }
 
     passToInput( output_ );
+}
 
-
+/**
+ * @brief Continuous saturation function for discrete-time sliding mode boundary layers.
+ * @param val Input value to be saturated.
+ * @param phi Boundary layer thickness.
+ * @return Saturated value in [-1, 1].
+ */
+double Chorus::OTG::sat_( double val, double phi ) {
+    if ( phi <= EPSILON ) {
+        return static_cast<double>( getSign( val ) );
+    }
+    const double ratio = val / phi;
+    if ( ratio > 1.0 ) {
+        return 1.0;
+    }
+    if ( ratio < -1.0 ) {
+        return -1.0;
+    }
+    return ratio;
 }
 
 /**
@@ -233,10 +299,10 @@ void Chorus::OTG::integrateControlVariable_( ) {
  * @return 1 if positive, -1 if negative, 0 if zero.
  */
 int Chorus::OTG::getSignOfDelta_( const double& delta ) {
-    if ( delta > 0 ) {
+    if ( delta > EPSILON ) {
         return 1;
     }
-    else if ( delta < 0 ) {
+    else if ( delta < -EPSILON ) {
         return -1;
     }
     return 0;
@@ -248,10 +314,10 @@ int Chorus::OTG::getSignOfDelta_( const double& delta ) {
  * @return 1 if positive, -1 if negative, 0 if zero.
  */
 int Chorus::OTG::getSignOfSummation_( const double& summation ) {
-    if ( summation > 0 ) {
+    if ( summation > EPSILON ) {
         return 1;
     }
-    else if ( summation < 0 ) {
+    else if ( summation < -EPSILON ) {
         return -1;
     }
     return 0;
@@ -263,10 +329,10 @@ int Chorus::OTG::getSignOfSummation_( const double& summation ) {
  * @return 1 if positive, -1 if negative, 0 if zero.
  */
 int Chorus::OTG::getSign( double value ) {
-    if ( value > 0 ) {
+    if ( value > EPSILON ) {
         return 1;
     }
-    else if ( value < 0 ) {
+    else if ( value < -EPSILON ) {
         return -1;
     }
     return 0;
@@ -277,15 +343,8 @@ int Chorus::OTG::getSign( double value ) {
  * @param output The OTGOutput struct to use as the new input state.
  */
 void Chorus::OTG::passToInput( Chorus::OTGOutput& output ) {
-    // Pass the output to the input
-    // params_.initial_position = output.position;
-    // params_.target_position = output.position;
-    // params_.target_velocity = output.velocity;
-    // params_.target_acceleration = output.acceleration;
-
     prev_acc_ = output.acceleration;
     prev_vel_ = output.velocity;
     prev_pos_ = output.position;
     uk_prev_ = output.jerk;
-    // output_ = output;
 }
