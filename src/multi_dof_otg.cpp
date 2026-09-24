@@ -17,7 +17,6 @@ void Chorus::MultiDofOtg::setDof( const int dof ) {
     output_.resize( dof_ );
     final_otg_params_.resize( dof_ );
     params_.resize( dof_ );
-    final_otg_params_.resize( dof_ );
     V0_.resize( dof_ );
     V1_.resize( dof_ );
     target_position_.resize( dof_ );
@@ -26,6 +25,7 @@ void Chorus::MultiDofOtg::setDof( const int dof ) {
     system_states_.initial_acceleration.resize( dof_ );
     position_error_.resize( dof_ );
     integeral_error_.resize( dof_ );
+    gains_.resize( dof_ );
 }
 
 //! DO NOT uncomment this shit :/
@@ -187,6 +187,12 @@ bool Chorus::MultiDofOtg::checkTargetupdate_( const MultiDofOTGParams& params ) 
  */
 double Chorus::MultiDofOtg::computeTrajectoryDuration_( ) {
     findMaxDisplacement_( );
+    if ( max_displacement_ < 1e-12 ) {
+        final_time_ = 0.0;
+        Ta_ = Tv_ = Td_ = Tj1_ = Tj2_ = 0.0;
+        Vlim_ = Alim_a_ = Alim_d_ = 0.0;
+        return final_time_;
+    }
     computeTJStar_( );
     computeJerkDurations_( );
     computeConstantVelocityDurations_( );
@@ -292,7 +298,9 @@ void Chorus::MultiDofOtg::computeConstantVelocityDurations_( ) {
     // std::cout << "time for const velocity segment: " << Tv_<<"\n";
     if ( Tv_ > 0 )   // means our assumption of vlim=Vmax was right and can continue with the above values
     {
-        // std::cout << "max vel will be reached.. \n";
+        Alim_a_ = Jmax_ * Tj1_;
+        Alim_d_ = -Jmax_ * Tj2_;
+        Vlim_ = Vmax_;
     }
 
     else {   // means our assumption of Vlim=Vmax was wrong and we have to recalculate using case 2.
@@ -307,19 +315,21 @@ void Chorus::MultiDofOtg::computeConstantVelocityDurations_( ) {
         Td_ = ( ( pow( Amax_, 2 ) / Jmax_ ) - ( 2 * V1_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * Amax_ );
 
         if ( Ta_ < 2 * Tj1_ || Td_ < 2 * Tj1_ ) {
-            for ( Y_ = 1; Y_ > 0; Y_ -= 0.01 ) {
+            const double original_Amax = Amax_;
+            for ( Y_ = 1.0; Y_ > 0.0; Y_ -= 0.01 ) {
                 // std::cout << Y_ << "\n";
-                Amax_ = Y_ * Amax_;
+                double cur_Amax = Y_ * original_Amax;
                 delta =
-                    ( pow( Amax_, 4 ) / pow( Jmax_, 2 ) ) +
+                    ( pow( cur_Amax, 4 ) / pow( Jmax_, 2 ) ) +
                     ( 2 * ( pow( V0_ [maxDistIndex_], 2 ) + pow( V1_ [maxDistIndex_], 2 ) ) ) +
-                    Amax_ * ( 4 * ( displacement_ ) -( 2 * ( Amax_ / Jmax_ ) * ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ) ) );
+                    cur_Amax * ( 4 * ( displacement_ ) -( 2 * ( cur_Amax / Jmax_ ) * ( V0_ [maxDistIndex_] + V1_ [maxDistIndex_] ) ) );
 
-                Tj1_ = Tj2_ = Amax_ / Jmax_;
-                Ta_ = ( ( pow( Amax_, 2 ) / Jmax_ ) - ( 2 * V0_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * Amax_ );
-                Td_ = ( ( pow( Amax_, 2 ) / Jmax_ ) - ( 2 * V1_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * Amax_ );
+                Tj1_ = Tj2_ = cur_Amax / Jmax_;
+                Ta_ = ( ( pow( cur_Amax, 2 ) / Jmax_ ) - ( 2 * V0_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * cur_Amax );
+                Td_ = ( ( pow( cur_Amax, 2 ) / Jmax_ ) - ( 2 * V1_ [maxDistIndex_] ) + sqrt( delta ) ) / ( 2 * cur_Amax );
                 if ( Ta_ > 2 * Tj1_ && Td_ > 2 * Tj1_ ) {
                     // std::cout << "auto adjustments done..\n";
+                    Amax_ = cur_Amax;
                     break;
                 }
                 else if ( Ta_ < 0 ) {
@@ -344,20 +354,10 @@ void Chorus::MultiDofOtg::computeConstantVelocityDurations_( ) {
                 }
             }
         }
+        Alim_a_ = Jmax_ * Tj1_;
+        Alim_d_ = -Jmax_ * Tj2_;
+        Vlim_ = V0_ [maxDistIndex_] + ( Ta_ - Tj1_ ) * Alim_a_;
     }
-
-    Alim_a_ = Jmax_ * Tj1_;
-    Alim_d_ = -Jmax_ * Tj2_;
-    Vlim_ = V1_ [maxDistIndex_] - ( Td_ - Tj2_ ) * Alim_d_;
-
-    // std::cout << "Ta: " << Ta_ << " || "
-    //      << "Td: " << Td_ << " || "
-    //      << "Tv: " << Tv_ << " || "
-    //      << "Tj1_: " << Tj1_ << " || "
-    //      << "Tj2: " << Tj2_ << " || "
-    //      << "Alim_a: " << Alim_a_ << " || "
-    //      << "Alim_d: " << Alim_d_ << " || "
-    //      << "Vlim_: " << Vlim_ << "\n";
 
     final_time_ = ( Ta_ + Tv_ + Td_ );
 
@@ -371,10 +371,21 @@ void Chorus::MultiDofOtg::computeConstantVelocityDurations_( ) {
 void Chorus::MultiDofOtg::computeConstraintsFromTrajDuration_( ) {
 
     for ( size_t i = 0; i < dof_; i++ ) {
-        if ( i == maxDistIndex_ ) {
-            final_otg_params_ [i].sampling_rate = params_ [i].sampling_rate;
-            final_otg_params_ [i].initial_position = params_ [i].initial_position;
-            final_otg_params_ [i].target_position = params_ [i].target_position;
+        final_otg_params_ [i].sampling_rate = params_ [i].sampling_rate;
+        final_otg_params_ [i].initial_position = params_ [i].initial_position;
+        final_otg_params_ [i].target_position = params_ [i].target_position;
+
+        if ( max_displacement_ < 1e-12 || diff_vec_ [i] < 1e-12 ) {
+            // Stationary joint or zero displacement: keep default parameters to prevent division by zero
+            final_otg_params_ [i].max_velocity = params_ [i].max_velocity;
+            final_otg_params_ [i].min_velocity = params_ [i].min_velocity;
+            final_otg_params_ [i].max_acceleration = params_ [i].max_acceleration;
+            final_otg_params_ [i].min_acceleration = params_ [i].min_acceleration;
+            final_otg_params_ [i].max_jerk = params_ [i].max_jerk;
+            final_otg_params_ [i].min_jerk = params_ [i].min_jerk;
+        }
+        else if ( i == maxDistIndex_ ) {
+            // Master joint retains configured limits
             final_otg_params_ [i].max_velocity = params_ [i].max_velocity;
             final_otg_params_ [i].min_velocity = params_ [i].min_velocity;
             final_otg_params_ [i].max_acceleration = params_ [i].max_acceleration;
@@ -383,31 +394,25 @@ void Chorus::MultiDofOtg::computeConstraintsFromTrajDuration_( ) {
             final_otg_params_ [i].min_jerk = params_ [i].min_jerk;
         }
         else {
-            Vmax_ = ( diff_vec_ [i] ) / ( ( 1 - ALPHA ) * final_time_ );
-            Amax_ =
-                diff_vec_ [i] / ( ALPHA * ( 1 - ALPHA ) * ( 1 - BETA ) * pow( final_time_, 2 ) );
-            Jmax_ = diff_vec_ [i] / ( pow( ALPHA, 2 ) * BETA * ( 1 - ALPHA ) * ( 1 - BETA ) * pow( final_time_, 3 ) );
-            Vlim_ = Vmax_;
-            Alim_a_ = Amax_;
-            Alim_d_ = -Alim_a_;
-            Jmin_ = -Jmax_;
-            Ta_ = ALPHA * final_time_;
-            Td_ = Ta_;
-            Tj1_ = Tj2_ = BETA * Ta_;
-            Tv_ = final_time_ - ( 2 * Ta_ );
+            // Exact kinematic scaling:
+            // Scale velocity, acceleration, and jerk limits proportionally to displacement ratio s_i = h_i / h_max.
+            // This guarantees that all phase durations (T_j, T_a, T_v, T_d) match the master joint identically:
+            //   T_j,i = (s_i * A_lim) / (s_i * J_max) = A_lim / J_max = T_j,master
+            //   T_a,i = T_j,i + (s_i * V_lim) / (s_i * A_lim) = T_a,master
+            //   T_v,i = (s_i * h_max) / (s_i * V_lim) - T_a,i = T_v,master
+            //   Total Duration T_i = 2*T_a + T_v = T_master
+            // In addition, since s_i <= 1, no joint ever violates the user-specified physical limits.
+            const double scale_factor = diff_vec_ [i] / max_displacement_;
+            const double scaled_vmax = scale_factor * Vlim_;
+            const double scaled_amax = scale_factor * Alim_a_;
+            const double scaled_jmax = scale_factor * params_ [maxDistIndex_].max_jerk;
 
-
-            final_otg_params_ [i].sampling_rate = params_ [i].sampling_rate;
-            final_otg_params_ [i].initial_position = params_ [i].initial_position;
-            final_otg_params_ [i].target_position = params_ [i].target_position;
-            final_otg_params_ [i].max_velocity = Vmax_;
-            final_otg_params_ [i].min_velocity = -Vmax_;
-            final_otg_params_ [i].max_acceleration = Alim_a_;
-            final_otg_params_ [i].min_acceleration = -Alim_a_;
-            final_otg_params_ [i].max_jerk = Jmax_;
-            final_otg_params_ [i].min_jerk = -Jmax_;
-
-
+            final_otg_params_ [i].max_velocity = scaled_vmax;
+            final_otg_params_ [i].min_velocity = -scaled_vmax;
+            final_otg_params_ [i].max_acceleration = scaled_amax;
+            final_otg_params_ [i].min_acceleration = -scaled_amax;
+            final_otg_params_ [i].max_jerk = scaled_jmax;
+            final_otg_params_ [i].min_jerk = -scaled_jmax;
         }
 
         if ( DEBUG ) {

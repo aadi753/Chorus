@@ -31,7 +31,7 @@
  //? do not change these values unless you know what they do!!.
 #define ALPHA 0.31
 #define BETA 0.2
-#define EPSILON 0.0001
+#define EPSILON 1e-12
 
 
 #endif /* CONFIG_H_ */

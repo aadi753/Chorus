@@ -41,9 +41,8 @@
 - Green is output velocity
 - Red is output acceleration
 
-- Jerk output **(Chorus outputs a constant jerk)**
+- Jerk output **(in later sections)**
 
-  ![Chorus Architecture](images/Figure_2.png)
 
 - In the first image a visible noise is visible in acceleration but it is taken care of by Chorus therefore the velocity and position profiles are smooth.
 
@@ -51,7 +50,8 @@
 
 - **2 DOF system**
 - Target position are updated, constraints are kept same for the whole duration
- ![Chorus Architecture](images/Figure_1_target_updated.png)
+
+ ![Chorus Architecture](images/2_dof_target_update.png)
 
 - Blue and red curves show the position outputs for each dof.
 - Orange and purple curves show the velocity outputs for each dof.
@@ -113,7 +113,7 @@
 
 ### Why not, Chorus can handle that too 🚀
 
-  ![Chorus Architecture](images/Figure_3_constraints_updated.png)
+  ![Chorus Architecture](images/2_dof_constraint_update.png)
 
 - Blue and red curves show the position outputs for each dof.
 - Orange and purple curves show the velocity outputs for each dof.
@@ -199,7 +199,8 @@
 
 - **Haah! Too easy**
 - **Here we goooo**
-  ![Chorus Architecture](images/Figure_2_constraints_and_target_updated.png)
+
+  ![Chorus Architecture](images/2_dof_target_and_constraint_update.png)
 - Blue and red curves show the position outputs for each dof.
 - Orange and purple curves show the velocity outputs for each dof.
 - Green and brown show the acceleration outputs for each dof.
@@ -260,12 +261,9 @@
 ### Why not... just Do it and let's see what happens
 
 - **And Chorus can do that too for you!** 🎶
-  ![Chorus Architecture](images/Figure_4_6_dof_sync_position_plot.png)
-  - Position plots for 6 DOF's
 
-  ![Chorus Architecture](images/Figure_5_6_dof_sync_velocity_plot.png)
-
-- Velocity plots for 6 DOF's
+  ![Chorus Architecture](images/6_dof_sync.png)
+  - Position and velocity plots for 6 DOF's
 
 ### Okay ,so what we got?
 
@@ -273,6 +271,44 @@
 2. Constraints respected ✅🚀
 3. Targets updates handled properly ✅🚀
 4. Synchronized motion ✅🚀
+
+---
+
+## ⚡ Key Highlights: Perfect Multi-DOF Synchronization & Chatter-Free Motion
+
+### 1. 🎯 Guaranteed Multi-DOF Time Synchronization
+In robotic arms and multi-axis machines, different joints often travel drastically different distances at the same time (e.g., Joint 1 moving $50\text{ rad}$ while Joint 2 only moves $0.001\text{ rad}$). 
+
+Chorus implements **exact proportional kinematic scaling**:
+- All active joints start, cruise, decelerate, and reach their destinations at the **exact same millisecond**.
+- Slave joint limits (velocity, acceleration, jerk) are dynamically scaled to match the master joint's phase timings identically.
+- No joint ever violates your configured physical limits, regardless of how large the displacement difference is.
+
+![6-DOF Synchronized Trajectory](images/Figure_6dof_synchronized_trajectory.png)
+
+#### Extreme Displacement Ratio Handling (50.0 rad vs 0.001 rad):
+Notice in the normalized progress plot below how all 6 joint trajectory curves overlap 100% identically from start to finish:
+
+![Extreme Displacement Synchronization](images/Figure_extreme_displacement_sync.png)
+
+---
+
+### 2. 🌊 Zero Velocity Ripple & Chatter-Free Settlement
+In discrete-time motion planning, high-frequency limit cycles can cause velocity ripples and negative dips as joints come to a stop. Chorus eliminates this entirely:
+- **Continuous Boundary Layers**: Replaces discrete bang-bang chattering with smooth continuous transitions across acceleration and velocity limits.
+- **Critical Braking Envelope Protection**: Intelligently ramps acceleration to zero in perfect harmony with velocity, guaranteeing **zero undershoot and zero velocity ripple**.
+- **Micro-Displacement Support**: Fully robust on sub-millimeter micro-steps ($0.0001\text{ rad}$) without stalling or dividing by zero.
+
+![Single-DOF Ripple-Free Velocity Settlement](images/Figure_single_dof_ripple_free.png)
+
+---
+
+### 3. 🔄 Dynamic Multi-Waypoint Tracking
+Chorus seamlessly processes real-time target changes on the fly while maintaining $C^3$ jerk-limited smoothness across all transitions:
+
+![Dynamic Multi-Waypoint Tracking](images/Figure_dynamic_multi_waypoint_tracking.png)
+
+---
 
 ## Let's have a quick look at the controller output when the controller is used
 

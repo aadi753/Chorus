@@ -64,3 +64,13 @@ target_link_libraries(example_multi_dof_constraints_update PUBLIC
     Chorus
     ${Python3_LIBRARIES}
 )
+
+# multi dof synchronization verification test suite
+add_executable(multi_dof_sync_verification
+    bin/test_multi_dof_sync_verification.cpp
+)
+
+target_link_libraries(multi_dof_sync_verification PUBLIC
+    Chorus
+    ${Python3_LIBRARIES}
+)
