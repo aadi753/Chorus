@@ -110,7 +110,7 @@
          * @return True if successful.
          */
         bool computeUk_( );
-        /**
+        /** 
          * @brief Compute the control variable for a given velocity (ucv).
          * @param vel The velocity constraint.
          * @return The computed ucv value.
