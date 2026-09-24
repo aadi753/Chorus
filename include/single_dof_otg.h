@@ -109,7 +109,7 @@
          * @brief Compute the final control variable uk.
          * @return True if successful.
          */
-        bool computeUk_( );
+        bool computeUk_( ); 
         /**
          * @brief Compute the control variable for a given velocity (ucv).
          * @param vel The velocity constraint.
